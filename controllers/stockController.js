@@ -13,6 +13,7 @@ exports.addStock = async (req, res) => {
       isCronStop,
       isActiveFromAdmin,
       brokerDetail,
+      marginPoint,
     } = req.body;
     const newStock = new Stock({
       name,
@@ -24,6 +25,7 @@ exports.addStock = async (req, res) => {
       isCronStop,
       isActiveFromAdmin,
       brokerDetail,
+      marginPoint,
     });
     const stock = await newStock.save();
     res.status(201).json({
@@ -81,6 +83,7 @@ exports.editStock = async (req, res) => {
       isCronStop,
       isActiveFromAdmin,
       brokerDetail,
+      marginPoint,
     } = req.body;
 
     const stock = await Stock.findByIdAndUpdate(
@@ -95,6 +98,7 @@ exports.editStock = async (req, res) => {
         isCronStop,
         isActiveFromAdmin,
         brokerDetail,
+        marginPoint,
       },
       { new: true }
     );

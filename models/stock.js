@@ -37,6 +37,9 @@ const stockSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  marginPoint: {
+    type: Number,
+  },
   isBuyAllowed: {
     type: Boolean,
     required: true,
