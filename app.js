@@ -4,13 +4,23 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const userRoutes = require("./routes/userRoutes");
 const stockRoutes = require("./routes/stockRoutes");
+const authRoutes = require("./routes/authRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 const bodyParser = require("body-parser");
 const path = require("path");
 
 dotenv.config();
 
+const dbUrl = process.env.DB_URL || "mongodb://127.0.0.1:27017/stocks";
+
+
+
+
 mongoose
-  .connect("mongodb://127.0.0.1:27017/stocks")
+  .connect(dbUrl,{
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error(err));
 
@@ -24,6 +34,8 @@ app.options("*", cors());
 
 app.use("/users", userRoutes);
 app.use("/stocks", stockRoutes);
+app.use("/auth", authRoutes);
+app.use("/admin", adminRoutes);
 
 const PORT = process.env.PORT || 3100;
 app.listen(PORT, () => {

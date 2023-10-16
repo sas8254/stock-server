@@ -8,18 +8,13 @@ const brokerSchema = new mongoose.Schema({
   personalSecret: {
     type: String,
   },
-  accessToken: {
-    type: String,
-  },
   apiKey: {
     type: String,
   },
   dailyAccessToken: {
     type: String,
   },
-  requestToken: {
-    type: String,
-  },
+
 });
 
 const stockSchema = new mongoose.Schema({
@@ -49,7 +44,7 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   password: {
-    type: Number,
+    type: String,
     required: true,
   },
   userRole: {
