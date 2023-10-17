@@ -37,36 +37,7 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-// exports.loginAdmin = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     const user = await User.findOne({ email })
-//       .select("-brokerDetail.clientId -brokerDetail.personalSecret -brokerDetail.dailyAccessToken");
-//     if (!user || !(await bcrypt.compare(password, user.password))) {
-//       return res.status(401).json({
-//         message: "Invalid email or password",
-//       });
-//     }
-//     if(user.userRole !== 'admin'){
-//       return res.status(401).json({
-//         message:"You are not admin"
-//       })
-//     }
 
-//     const token = generateToken(user._id, user.userRole);
-
-//     res.status(200).json({
-//       message: "Admin logged in successfully",
-//       token,
-//       user,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       message: "An error occurred",
-//       error,
-//     });
-//   }
-// };
 
 
 
