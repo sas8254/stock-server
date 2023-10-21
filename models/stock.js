@@ -17,6 +17,10 @@ const borkerSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  exchange: {
+    type: String,
+    enum: [NFO, MCX],
+  },
 });
 
 const stockSchema = new mongoose.Schema({
