@@ -19,7 +19,11 @@ const borkerSchema = new mongoose.Schema({
   },
   exchange: {
     type: String,
-    enum: [NFO, MCX],
+    enum: ["NFO", "MCX"],
+  },
+  expiryDate: {
+    type: Date,
+    required: true,
   },
 });
 
@@ -31,7 +35,7 @@ const stockSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ["buy", "sell"],
+    enum: ["BUY", "SELL"],
   },
   silverQuantity: {
     type: Number,

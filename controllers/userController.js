@@ -14,7 +14,7 @@ exports.changePassword = async (req, res) => {
       },
       { new: true }
     ).select(
-      "-brokerDetail.clientId -brokerDetail.personalSecret -brokerDetail.dailyAccessToken"
+      "-brokerDetail.clientId -brokerDetail.personalSecret -brokerDetail.dailyAccessToken -password"
     );
     res.status(200).json({
       user,
