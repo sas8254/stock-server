@@ -79,12 +79,12 @@ exports.getAllUsers = async (req, res) => {
 };
 
 exports.editUser = async (req, res) => {
+  // return res.send(req.body);
   try {
     const {
       name,
       email,
       mobileNo,
-      password,
       userRole,
       paymentDetail,
       membership,
@@ -93,7 +93,6 @@ exports.editUser = async (req, res) => {
       brokerDetail,
       stockDetail,
     } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.findByIdAndUpdate(
       req.params.Id,
@@ -101,7 +100,6 @@ exports.editUser = async (req, res) => {
         name,
         email,
         mobileNo,
-        password:hashedPassword,
         userRole,
         paymentDetail,
         membership,
@@ -130,6 +128,27 @@ exports.deleteUser = async (req, res) => {
       return res.status(500).json("No user found!");
     }
     res.status(200).json("User Deleted Successfully");
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred",
+      error,
+    });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await User.findByIdAndUpdate(
+      req.params.Id,
+      {
+        password: hashedPassword,
+      },
+      { new: true }
+    );
+    res.status(200).json("Password changed successfullly.");
   } catch (error) {
     res.status(500).json({
       message: "An error occurred",
