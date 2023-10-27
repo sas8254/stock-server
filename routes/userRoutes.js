@@ -5,6 +5,7 @@ const authMiddleware = require("../utils/authMiddleware");
 const router = express.Router();
 
 router.patch("/change-password/:Id",authMiddleware.isUser, userController.changePassword);
-router.patch("/genSession", authMiddleware.isUser, userController.genSession);
+router.post("/gen-session", authMiddleware.isUser, userController.genSession);
+router.post("/sign-up", userController.signUp);
 
 module.exports = router;

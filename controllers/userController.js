@@ -69,3 +69,31 @@ module.exports.genSession = async (req, res) => {
     });
   }
 };
+
+exports.signUp = async (req, res) => {
+  try {
+    const { name, email, mobileNo, password, clientId } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      name,
+      email,
+      mobileNo,
+      password: hashedPassword,
+      brokerDetail: {
+        clientId: clientId,
+      },
+    });
+    const user = await newUser.save();
+    res.status(201).json({
+      message: "User added successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred",
+      error,
+    });
+  }
+};

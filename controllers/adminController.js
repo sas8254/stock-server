@@ -47,8 +47,9 @@ exports.addUser = async (req, res) => {
 
 exports.getUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.Id)
-    .select("-brokerDetail.clientId -brokerDetail.personalSecret -brokerDetail.dailyAccessToken");;
+    const user = await User.findById(req.params.Id).select(
+      "-brokerDetail.personalSecret -brokerDetail.dailyAccessToken"
+    );
     if (user === null) {
       return res.json("No user found!");
     }
