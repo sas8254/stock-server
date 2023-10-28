@@ -14,9 +14,11 @@ const generateToken = (id, role) => {
 exports.loginUser = async (req, res) => {
   try {
   const { email, password } = req.body;
-  const user = await User.findOne({ email }).select(
-    "-brokerDetail.clientId -brokerDetail.personalSecret -brokerDetail.dailyAccessToken"
-  );
+  const user = await User.findOne({ email })
+    .select(
+      "-brokerDetail.clientId -brokerDetail.personalSecret -brokerDetail.dailyAccessToken"
+    )
+    .populate("stockDetail");
   if (!user || !(await bcrypt.compare(password, user.password))) {
     return res.status(401).json({
       message: "Invalid email or password",
