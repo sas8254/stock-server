@@ -23,10 +23,10 @@ const logSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  tradingStatus: {
+  tradingType: {
     type: String,
     required: true,
-    enum: ["BYE", "SELL"],
+    enum: ["BUY", "SELL"],
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,

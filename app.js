@@ -6,6 +6,7 @@ const userRoutes = require("./routes/userRoutes");
 const stockRoutes = require("./routes/stockRoutes");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const logRoutes = require("./routes/logRoutes");
 const bodyParser = require("body-parser");
 const path = require("path");
 
@@ -13,11 +14,8 @@ dotenv.config();
 
 const dbUrl = process.env.DB_URL || "mongodb://127.0.0.1:27017/stocks";
 
-
-
-
 mongoose
-  .connect(dbUrl,{
+  .connect(dbUrl, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -36,6 +34,7 @@ app.use("/users", userRoutes);
 app.use("/stocks", stockRoutes);
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
+app.use("/logs", logRoutes);
 
 const PORT = process.env.PORT || 3100;
 app.listen(PORT, () => {
