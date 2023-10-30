@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post("/", authMiddleware.isAdmin, stockController.addStock);
 
-router.get("/", authMiddleware.isAdmin, stockController.getAllStocks);
+router.get("/", stockController.getAllStocks);
 
 router.get("/:Id", authMiddleware.isAdmin, stockController.getStock);
 

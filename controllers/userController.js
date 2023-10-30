@@ -97,3 +97,56 @@ exports.signUp = async (req, res) => {
     });
   }
 };
+
+exports.editSelf = async (req, res) => {
+  try {
+    const foundUser = await User.findById(req.user.id);
+
+    const { name, email, mobileNo, stockDetail } = req.body;
+
+    let newStockDetail, newBrokerDetail;
+
+    if (stockDetail) {
+      newStockDetail = stockDetail.map((stock) => {
+        return {
+          stockId: stock.stockId,
+          quantity: stock.quantity,
+        };
+      });
+    } else {
+      newStockDetail = foundUser.stockDetail;
+    }
+
+    if (req.body.brokerDetail) {
+      newBrokerDetail = {
+        clientId: req.body.brokerDetail.clientId,
+      };
+    } else {
+      newBrokerDetail = foundUser.brokerDetail;
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        name,
+        email,
+        mobileNo,
+        brokerDetail: newBrokerDetail,
+        stockDetail: newStockDetail,
+      },
+      { new: true }
+    )
+      .populate("stockDetail.stockId")
+      .populate("brokerDetail.clientId");
+
+    res.status(200).json({
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred",
+      error,
+    });
+  }
+};
+

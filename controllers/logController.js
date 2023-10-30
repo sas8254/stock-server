@@ -50,5 +50,21 @@ exports.getAllLogs = async (req, res) => {
   }
 };
 
+exports.getUserLogs = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const logs = await Log.find({ userId: userId });
+
+    if (!logs) {
+      return res.status(404).json({ message: "No logs found for this user." });
+    }
+
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 
 

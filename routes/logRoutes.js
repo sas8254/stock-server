@@ -1,13 +1,12 @@
 const express = require("express");
 const logController = require("../controllers/LogController");
-const authMiddleware = require("../utils/authMiddleware");
 
 const router = express.Router();
 
-router.post("/", authMiddleware.isAdmin, logController.addLog);
+router.post("/", logController.addLog);
 
-router.get("/", authMiddleware.isAdmin, logController.getAllLogs);
+router.get("/", logController.getAllLogs);
 
-// router.get("/:Id", authMiddleware.isAdmin, logController.getLogs);
+router.get("/:userId", logController.getUserLogs);
 
 module.exports = router;
