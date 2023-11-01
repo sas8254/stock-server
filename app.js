@@ -7,6 +7,7 @@ const stockRoutes = require("./routes/stockRoutes");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const logRoutes = require("./routes/logRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 const bodyParser = require("body-parser");
 const path = require("path");
 
@@ -35,6 +36,7 @@ app.use("/stocks", stockRoutes);
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
 app.use("/logs", logRoutes);
+app.use("/orders", orderRoutes);
 
 const PORT = process.env.PORT || 3100;
 app.listen(PORT, () => {
