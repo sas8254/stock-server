@@ -6,27 +6,27 @@ const instance = () => {
   });
 };
 
-const placeOrderThroughApi = async (api_key, access_token, data) => {
-  const newInstance = instance()
-  console.log(data)
+const placeOrderInnerFunc = async (api_key, access_token, data) => {
+  const newInstance = instance();
+  console.log(data);
   try {
-     console.log(access_token)
+    console.log(access_token);
 
-     const j = await newInstance.post(/orders/regular, data, {
-        headers: {
-           "X-Kite-Version": process.env.KITE_VERSION,
-           Authorization: `token ${api_key}:${access_token}`,
-           "Content-Type": "application/x-www-form-urlencoded"
-        }
-     })
-     console.log(j)
-     if (j) {
-        return j.data.data.order_id || "invalid order data"
-     }
+    const response = await newInstance.post("/orders/regular", data, {
+      headers: {
+        "X-Kite-Version": process.env.KITE_VERSION,
+        Authorization: `token ${api_key}:${access_token}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+    console.log(response);
+    if (response) {
+      return response.data.data.order_id || "invalid order data";
+    }
   } catch (error) {
-     // console.log(error)
-   }
-}
+    console.log(error);
+  }
+};
 
 const placeLimitOrderByApi = async (
   tradingsymbol,
@@ -39,7 +39,7 @@ const placeLimitOrderByApi = async (
   console.log("placing limit order by api");
   console.log(transaction_type);
   try {
-    const j = await placeOrderThroughApi(api_key, access_token, {
+    const response = await placeOrderInnerFunc(api_key, access_token, {
       exchange: exchange,
       tradingsymbol: tradingsymbol,
       transaction_type: transaction_type,
@@ -50,8 +50,8 @@ const placeLimitOrderByApi = async (
       price: price,
       validity_ttl: 1,
     });
-    if (j) {
-      return j; //(j or j.orderid need to be checked )
+    if (response) {
+      return response; //(response or response.orderid need to be checked )
     }
   } catch (error) {
     console.log("error in placing limit order ");
@@ -61,61 +61,70 @@ const placeLimitOrderByApi = async (
 
 function orderCheckingHandler(order_id) {
   return new Promise((resolve, reject) => {
-     const orderChecking = setInterval(() => {
-        apiCenter.orderHistoryThroughApi(api_key,access_token,order_id)
-           .then((res) => {
-              // console.log(res)
-              console.log(res.slice(-1)[0].status)
-              if (res.slice(-1)[0].status === "COMPLETE") {
-                 resolve(true)
-                 clearInterval(orderChecking)
-              } else if (res.slice(-1)[0].status === "CANCELLED" ||res.slice(-1)[0].status === "REJECTED") {
-                 resolve(false)
-                 clearInterval(orderChecking)
-              }
-           })
-           .catch((err) => {})
+    const orderChecking = setInterval(() => {
+      apiCenter
+        .orderHistoryThroughApi(api_key, access_token, order_id)
+        .then((res) => {
+          // console.log(res)
+          console.log(res.slice(-1)[0].status);
+          if (res.slice(-1)[0].status === "COMPLETE") {
+            resolve(true);
+            clearInterval(orderChecking);
+          } else if (
+            res.slice(-1)[0].status === "CANCELLED" ||
+            res.slice(-1)[0].status === "REJECTED"
+          ) {
+            resolve(false);
+            clearInterval(orderChecking);
+          }
+        })
+        .catch((err) => {});
 
-        console.log("checking")
-     }, 5000)
+      console.log("checking");
+    }, 5000);
 
-     setTimeout(() => {
-        clearInterval(orderChecking)
-        resolve(true)
-     }, 62000)
-   })
+    setTimeout(() => {
+      clearInterval(orderChecking);
+      resolve(true);
+    }, 62000);
+  });
 }
 
 const orderHistoryThroughApi = async (api_key, access_token, id) => {
-  const newInstance = this.instance2()
+  const newInstance = instance();
 
   try {
-     console.log(access_token)
+    console.log(access_token);
 
-     const j = await newInstance.get(/orders/${id}, {
-        headers: {
-           "X-Kite-Version": process.env.KITE_VERSION,
-           Authorization: `token ${api_key}:${access_token}`,
-           "Content-Type": "application/x-www-form-urlencoded"
-        }
-     })
-     console.log(j)
-     if (j) {
-        return j.data.data
-     }
+    const j = await newInstance.get("/orders/id", {
+      headers: {
+        "X-Kite-Version": process.env.KITE_VERSION,
+        Authorization: `token ${api_key}:${access_token}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+    console.log(j);
+    if (j) {
+      return j.data.data;
+    }
   } catch (error) {
-     // console.log(error)
-   }
-}
+    // console.log(error)
+  }
+};
 
-const limitOrderTester = async()=>{
+const limitOrderTester = async () => {
   try {
-     const orderId = await placeLimitOrderByApi("CRUDEOILM23NOVFUT","BUY","MCX",1,6615)
-    console.log(orderId+"line 185")
-     const orderStatus = await orderCheckingHandler(orderId)
-        console.log(orderStatus)
+    const orderId = await placeLimitOrderByApi(
+      "CRUDEOILM23NOVFUT",
+      "BUY",
+      "MCX",
+      1,
+      6615
+    );
+    console.log(orderId + "line 185");
+    const orderStatus = await orderCheckingHandler(orderId);
+    console.log(orderStatus);
   } catch (error) {
-     console.log(error)
-
-   }
-}
+    console.log(error);
+  }
+};
