@@ -10,7 +10,7 @@ const logSchema = new mongoose.Schema({
     required: true,
     enum: ["OPEN", "COMPLETE", "ACCEPTED", "REJECTED"],
   },
-  tradingSymbol: {
+  tradingsymbol: {
     type: String,
     required: true,
   },
@@ -23,7 +23,7 @@ const logSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  tradingType: {
+  transaction_type: {
     type: String,
     required: true,
     enum: ["BUY", "SELL"],

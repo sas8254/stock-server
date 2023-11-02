@@ -7,18 +7,18 @@ exports.addLog = async (req, res) => {
       orderId,
       orderStatus,
       userId,
-      tradingSymbol,
+      tradingsymbol,
       time,
       price,
-      tradingType,
+      transaction_type,
     } = req.body;
     const newLog = new Log({
       orderId,
       orderStatus,
-      tradingSymbol,
+      tradingsymbol,
       time,
       price,
-      tradingType,
+      transaction_type,
       userId,
     });
     const log = await newLog.save();

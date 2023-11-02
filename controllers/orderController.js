@@ -70,16 +70,16 @@ const orderHistoryThroughApi = async (api_key, access_token, id) => {
   try {
     // console.log(access_token);
 
-    const j = await newInstance.get(`/orders/${id}`, {
+    const response = await newInstance.get(`/orders/${id}`, {
       headers: {
         "X-Kite-Version": process.env.KITE_VERSION,
         Authorization: `token ${api_key}:${access_token}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
     });
-    // console.log(j);
-    if (j) {
-      return j.data.data;
+    // console.log(response);
+    if (response) {
+      return response.data.data;
     }
   } catch (error) {
     // console.log(error)
@@ -155,14 +155,14 @@ exports.placeLimtOrder = async (req, res) => {
     const newLog = new Log({
       orderId,
       orderStatus,
-      tradingSymbol: tradingsymbol,
+      tradingsymbol,
       time,
       price,
-      tradingType: transaction_type,
+      transaction_type,
       userId,
     });
 
-    const log = await newLog.save();
+    await newLog.save();
   } catch (error) {
     // console.log(error);
   }
