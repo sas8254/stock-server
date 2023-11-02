@@ -51,6 +51,48 @@ const limitOrderNSE = async (
   }
 };
 
+const limitOrderNFO = async (
+  tradingsymbol,
+  transaction_type,
+  exchange,
+  quantity,
+  price,
+  api_key,
+  access_token
+) => {
+  try {
+    const newInstance = instance();
+    const response = await newInstance.post(
+      "/orders/regular",
+      {
+        exchange,
+        tradingsymbol,
+        transaction_type,
+        quantity,
+        order_type: "LIMIT",
+        product: "NRML",
+        validity: "TTL",
+        price,
+        validity_ttl: 1,
+      },
+      {
+        headers: {
+          "X-Kite-Version": process.env.KITE_VERSION,
+          Authorization: `token ${api_key}:${access_token}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    if (response) {
+      return response.data.data.order_id || "invalid order data";
+    }
+  } catch (error) {
+    console.log("error in placing limit order ");
+    console.log(error);
+  }
+};
+
 const limitOrderMCX = async (
   tradingsymbol,
   transaction_type,
@@ -70,10 +112,9 @@ const limitOrderMCX = async (
         transaction_type,
         quantity,
         order_type: "LIMIT",
-        product: "CNC",
-        validity: "TTL",
+        product: "NRML",
+        validity: "DAY",
         price,
-        validity_ttl: 1,
       },
       {
         headers: {

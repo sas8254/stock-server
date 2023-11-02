@@ -14,7 +14,9 @@ const brokerSchema = new mongoose.Schema({
   dailyAccessToken: {
     type: String,
   },
-
+  enctoken: {
+    type: String,
+  },
 });
 
 const stockSchema = new mongoose.Schema({

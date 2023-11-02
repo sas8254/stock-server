@@ -42,7 +42,7 @@ module.exports.genSession = async (req, res) => {
       .then(function (response) {
         console.log(response);
         daily_access_token = response.access_token;
-        //  enctoken = response.enctoken
+        enctoken = response.enctoken;
         // init()
       })
       .catch(function (err) {
@@ -55,7 +55,7 @@ module.exports.genSession = async (req, res) => {
     await User.findByIdAndUpdate(
       req.user.id,
       {
-        $set: { "brokerDetail.dailyAccessToken": daily_access_token },
+        $set: { "brokerDetail.dailyAccessToken": daily_access_token }, //save enc token if user is admin
       },
       { new: true }
     );
@@ -149,4 +149,3 @@ exports.editSelf = async (req, res) => {
     });
   }
 };
-
