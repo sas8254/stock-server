@@ -34,6 +34,7 @@ module.exports.genSession = async (req, res) => {
     const api_secret = foundUser.brokerDetail.personalSecret;
     const requestToken = req.body.requestToken;
     const daily_access_token = "";
+    const enctoken = "";
 
     const kc = new KiteConnect({
       api_key: api_key,
@@ -55,7 +56,10 @@ module.exports.genSession = async (req, res) => {
     await User.findByIdAndUpdate(
       req.user.id,
       {
-        $set: { "brokerDetail.dailyAccessToken": daily_access_token }, //save enc token if user is admin
+        $set: {
+          "brokerDetail.dailyAccessToken": daily_access_token,
+          "brokerDetail.enctoken": enctoken,
+        },
       },
       { new: true }
     );

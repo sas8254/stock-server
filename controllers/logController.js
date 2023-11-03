@@ -12,6 +12,7 @@ exports.addLog = async (req, res) => {
       price,
       transaction_type,
     } = req.body;
+
     const newLog = new Log({
       orderId,
       orderStatus,
@@ -21,6 +22,7 @@ exports.addLog = async (req, res) => {
       transaction_type,
       userId,
     });
+
     const log = await newLog.save();
     res.status(201).json({
       message: "Log added successfully",

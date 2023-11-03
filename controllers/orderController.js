@@ -9,58 +9,128 @@ const instance = () => {
   });
 };
 
-const placeOrderInnerFunc = async (api_key, access_token, data) => {
-  const newInstance = instance();
-  // console.log(data);
-  try {
-    // console.log(access_token);
-
-    const response = await newInstance.post("/orders/regular", data, {
-      headers: {
-        "X-Kite-Version": process.env.KITE_VERSION,
-        Authorization: `token ${api_key}:${access_token}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-    // console.log(response);
-    if (response) {
-      return response.data.data.order_id || "invalid order data";
-    }
-  } catch (error) {
-    // console.log(error);
-  }
-};
-
-const placeLimitOrderByApi = async (
+const limitOrderNSE = async (
   tradingsymbol,
   transaction_type,
   exchange,
   quantity,
   price,
   api_key,
-  access_token,
-  userId
+  access_token
 ) => {
-  // console.log("placing limit order by api");
-  // console.log(transaction_type);
   try {
-    const response = await placeOrderInnerFunc(api_key, access_token, {
-      exchange: exchange,
-      tradingsymbol: tradingsymbol,
-      transaction_type: transaction_type,
-      quantity: quantity,
-      order_type: "LIMIT",
-      product: "CNC",
-      validity: "TTL",
-      price: price,
-      validity_ttl: 1,
-    });
+    const newInstance = instance();
+    const response = await newInstance.post(
+      "/orders/regular",
+      {
+        exchange,
+        tradingsymbol,
+        transaction_type,
+        quantity,
+        order_type: "LIMIT",
+        product: "CNC",
+        validity: "TTL",
+        price,
+        validity_ttl: 1,
+      },
+      {
+        headers: {
+          "X-Kite-Version": process.env.KITE_VERSION,
+          Authorization: `token ${api_key}:${access_token}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
     if (response) {
-      return response; //(response or response.orderid need to be checked )
+      return response.data.data.order_id || "invalid order data";
     }
   } catch (error) {
-    // console.log("error in placing limit order ");
-    // console.log(error);
+    console.log("error in placing limit order ");
+    console.log(error);
+  }
+};
+
+const limitOrderNFO = async (
+  tradingsymbol,
+  transaction_type,
+  exchange,
+  quantity,
+  price,
+  api_key,
+  access_token
+) => {
+  try {
+    const newInstance = instance();
+    const response = await newInstance.post(
+      "/orders/regular",
+      {
+        exchange,
+        tradingsymbol,
+        transaction_type,
+        quantity,
+        order_type: "LIMIT",
+        product: "NRML",
+        validity: "TTL",
+        price,
+        validity_ttl: 1,
+      },
+      {
+        headers: {
+          "X-Kite-Version": process.env.KITE_VERSION,
+          Authorization: `token ${api_key}:${access_token}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    if (response) {
+      return response.data.data.order_id || "invalid order data";
+    }
+  } catch (error) {
+    console.log("error in placing limit order ");
+    console.log(error);
+  }
+};
+
+const limitOrderMCX = async (
+  tradingsymbol,
+  transaction_type,
+  exchange,
+  quantity,
+  price,
+  api_key,
+  access_token
+) => {
+  try {
+    const newInstance = instance();
+    const response = await newInstance.post(
+      "/orders/regular",
+      {
+        exchange,
+        tradingsymbol,
+        transaction_type,
+        quantity,
+        order_type: "LIMIT",
+        product: "NRML",
+        validity: "DAY",
+        price,
+      },
+      {
+        headers: {
+          "X-Kite-Version": process.env.KITE_VERSION,
+          Authorization: `token ${api_key}:${access_token}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    if (response) {
+      return response.data.data.order_id || "invalid order data";
+    }
+  } catch (error) {
+    console.log("error in placing limit order ");
+    console.log(error);
   }
 };
 
@@ -116,7 +186,7 @@ function orderCheckingHandler(order_id, api_key, access_token) {
   });
 }
 
-exports.placeLimtOrder = async (req, res) => {
+exports.placeLimtOrderNSE = async (req, res) => {
   try {
     const {
       tradingsymbol,
@@ -127,13 +197,7 @@ exports.placeLimtOrder = async (req, res) => {
       userId,
     } = req.body;
 
-    const user = await User.findById(userId);
-    const api_key = user.brokerDetail.apiKey;
-    const access_token = user.brokerDetail.dailyAccessToken;
-    // const api_key = "m9vw48uef04xtbzw";
-    // const access_token = "2I0M6gC7wbSePOkKlBCzcAc1Nr4z9vhp";
-
-    const orderId = await placeLimitOrderByApi(
+    const orderId = await limitOrderNSE(
       tradingsymbol,
       transaction_type,
       exchange,
@@ -142,6 +206,12 @@ exports.placeLimtOrder = async (req, res) => {
       api_key,
       access_token
     );
+
+    const user = await User.findById(userId);
+    const api_key = user.brokerDetail.apiKey;
+    const access_token = user.brokerDetail.dailyAccessToken;
+    const time = new Date();
+
     if (!orderId) {
       return res.json("Order Id not generated. Error in data.");
     }
@@ -164,6 +234,110 @@ exports.placeLimtOrder = async (req, res) => {
 
     await newLog.save();
   } catch (error) {
-    // console.log(error);
+    console.log(error);
   }
 };
+
+exports.placeLimtOrderNFO = async (req, res) => {
+  try {
+    const {
+      tradingsymbol,
+      transaction_type,
+      exchange,
+      quantity,
+      price,
+      userId,
+    } = req.body;
+
+    const orderId = await limitOrderNFO(
+      tradingsymbol,
+      transaction_type,
+      exchange,
+      quantity,
+      price,
+      api_key,
+      access_token
+    );
+
+    const user = await User.findById(userId);
+    const api_key = user.brokerDetail.apiKey;
+    const access_token = user.brokerDetail.dailyAccessToken;
+
+    if (!orderId) {
+      return res.json("Order Id not generated. Error in data.");
+    }
+    console.log("orderId is " + orderId);
+    const orderStatus = await orderCheckingHandler(
+      orderId,
+      api_key,
+      access_token
+    );
+    console.log(orderStatus);
+    const newLog = new Log({
+      orderId,
+      orderStatus,
+      tradingsymbol,
+      time,
+      price,
+      transaction_type,
+      userId,
+    });
+
+    await newLog.save();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.placeLimtOrderMCX = async (req, res) => {
+  try {
+    const {
+      tradingsymbol,
+      transaction_type,
+      exchange,
+      quantity,
+      price,
+      userId,
+    } = req.body;
+
+    const orderId = await limitOrderMCX(
+      tradingsymbol,
+      transaction_type,
+      exchange,
+      quantity,
+      price,
+      api_key,
+      access_token
+    );
+
+    const user = await User.findById(userId);
+    const api_key = user.brokerDetail.apiKey;
+    const access_token = user.brokerDetail.dailyAccessToken;
+
+    if (!orderId) {
+      return res.json("Order Id not generated. Error in data.");
+    }
+    console.log("orderId is " + orderId);
+    const orderStatus = await orderCheckingHandler(
+      orderId,
+      api_key,
+      access_token
+    );
+    console.log(orderStatus);
+    const newLog = new Log({
+      orderId,
+      orderStatus,
+      tradingsymbol,
+      time,
+      price,
+      transaction_type,
+      userId,
+    });
+
+    await newLog.save();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
