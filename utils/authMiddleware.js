@@ -25,7 +25,7 @@ const isUser = (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
     const decodedToken = jwt.verify(token, process.env.SECRET);
 
-    if (decodedToken.role === "user") {
+    if (decodedToken.role === "user" || decodedToken.role === "admin") {
       req.user = {
         id: decodedToken.id,
         role: decodedToken.role,

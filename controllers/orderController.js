@@ -212,6 +212,10 @@ exports.placeLimtOrderNSE = async (req, res) => {
     const access_token = user.brokerDetail.dailyAccessToken;
     const time = new Date();
 
+    if (!access_token) {
+      return res.json("No access token fond");
+    }
+
     if (!orderId) {
       return res.json("Order Id not generated. Error in data.");
     }
@@ -266,6 +270,11 @@ exports.placeLimtOrderNFO = async (req, res) => {
     if (!orderId) {
       return res.json("Order Id not generated. Error in data.");
     }
+
+    if (!access_token) {
+      return res.json("No access token fond");
+    }
+
     console.log("orderId is " + orderId);
     const orderStatus = await orderCheckingHandler(
       orderId,
@@ -313,6 +322,10 @@ exports.placeLimtOrderMCX = async (req, res) => {
     const user = await User.findById(userId);
     const api_key = user.brokerDetail.apiKey;
     const access_token = user.brokerDetail.dailyAccessToken;
+
+    if (!access_token) {
+      return res.json("No access token fond");
+    }
 
     if (!orderId) {
       return res.json("Order Id not generated. Error in data.");
