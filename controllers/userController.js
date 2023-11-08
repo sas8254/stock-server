@@ -33,13 +33,14 @@ module.exports.genSession = async (req, res) => {
     const api_key = foundUser.brokerDetail.apiKey;
     const api_secret = foundUser.brokerDetail.personalSecret;
     const requestToken = req.body.requestToken;
-    const daily_access_token = "";
-    const enctoken = "";
+    let daily_access_token = null;
+    let enctoken = null;
 
     const kc = new KiteConnect({
       api_key: api_key,
     });
-    kc.generateSession(requestToken, api_secret)
+    await kc
+      .generateSession(requestToken, api_secret)
       .then(function (response) {
         console.log(response);
         daily_access_token = response.access_token;
@@ -47,26 +48,31 @@ module.exports.genSession = async (req, res) => {
         // init()
       })
       .catch(function (err) {
+        // console.log(err)
         return res.status(500).json({
-          message: "An error occurred",
+          message: "An error occurred redirect and try again to save",
           err,
         });
       });
-
-    await User.findByIdAndUpdate(
-      req.user.id,
-      {
-        $set: {
-          "brokerDetail.dailyAccessToken": daily_access_token,
-          "brokerDetail.enctoken": enctoken,
+    if (daily_access_token && enctoken) {
+      await User.findByIdAndUpdate(
+        req.user.id,
+        {
+          $set: {
+            "brokerDetail.dailyAccessToken": daily_access_token,
+            "brokerDetail.enctoken": enctoken,
+          },
         },
-      },
-      { new: true }
-    );
-    res.status(200).json({
-      message: "dailyAccessToken saved successfully",
-    });
+        { new: true }
+      );
+      res.status(200).json({
+        message: "dailyAccessToken saved successfully",
+      });
+    } else {
+      console.log("juni token mokli topa");
+    }
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       message: "An error occurred",
       error,
