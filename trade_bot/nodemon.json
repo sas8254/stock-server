@@ -1,0 +1,3 @@
+{
+   "ignore": ["crudeOilMiniOrder.json", "crudeOil.json", "nifty.json", "finNifty.json", "bankNifty.json"]
+}
