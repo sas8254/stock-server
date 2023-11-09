@@ -1,5 +1,4 @@
 const express = require("express");
-const userController = require("../controllers/userController");
 const orderController = require("../controllers/orderController");
 const authMiddleware = require("../utils/authMiddleware");
 

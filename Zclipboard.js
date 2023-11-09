@@ -1,58 +1,59 @@
-module.exports.genSession = async (req, res) => {
+exports.placeLimtOrderNSE = async (req, res) => {
   try {
-    const foundUser = await User.findById(req.user.id);
-    const api_key = foundUser.brokerDetail.apiKey;
-    const api_secret = foundUser.brokerDetail.personalSecret;
-    const requestToken = req.body.requestToken;
-    let daily_access_token = null;
-    let enctoken = null;
-    if (!api_secret || !api_key) {
-      return res.status(500).json({
-        message: "api key or personal secret not saved contact admin",
-      });
-    } else {
-      const kc = new KiteConnect({
-        api_key: api_key,
-      });
-      await kc
-        .generateSession(requestToken, api_secret)
-        .then(function (response) {
-          console.log(response);
-          daily_access_token = response.access_token;
-          enctoken = response.enctoken;
-          // init()
-        })
-        .catch(function (err) {
-          console.log(err);
-          return res.status(500).json({
-            message: "An error occurred redirect and try again to save",
-            err,
-          });
-        });
+    console.log(req.body);
+    const {
+      tradingsymbol,
+      transaction_type,
+      exchange,
+      quantity,
+      price,
+      userId,
+    } = req.body;
+    const user = await User.findById(userId);
+    // return console.log(user)
+    const api_key = user.brokerDetail.apiKey;
+    const access_token = user.brokerDetail.dailyAccessToken;
+    // console.log(user)
+    if (!access_token) {
+      return res.status(403).json("No access token fond");
     }
+    const orderId = await limitOrderNSE(
+      tradingsymbol,
+      transaction_type,
+      exchange,
+      quantity,
+      price,
+      api_key,
+      access_token
+    );
 
-    if (daily_access_token && enctoken) {
-      await User.findByIdAndUpdate(
-        req.user.id,
-        {
-          $set: {
-            "brokerDetail.dailyAccessToken": daily_access_token,
-            "brokerDetail.enctoken": enctoken,
-          },
-        },
-        { new: true }
-      );
-      res.status(200).json({
-        message: "dailyAccessToken saved successfully",
-      });
+    const time = new Date();
+
+    if (!orderId) {
+      return res.status(403).json("Order Id not generated. Error in data.");
     } else {
-      console.log("juni token mokli topa");
+      console.log("orderId is " + orderId);
+      const orderStatus = await orderCheckingHandler(
+        orderId,
+        api_key,
+        access_token
+      );
+      console.log(orderStatus);
+      const newLog = new Log({
+        orderId,
+        orderStatus,
+        tradingsymbol,
+        time,
+        price,
+        transaction_type,
+        userId,
+      });
+
+      await newLog.save();
+
+      res.status(200).json({ newLog });
     }
   } catch (error) {
     console.log(error);
-    res.status(500).json({
-      message: "An error occurred",
-      error,
-    });
   }
-}
+};

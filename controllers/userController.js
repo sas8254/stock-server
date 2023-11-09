@@ -30,6 +30,7 @@ exports.changePassword = async (req, res) => {
 module.exports.genSession = async (req, res) => {
   try {
     const foundUser = await User.findById(req.user.id);
+    // console.log(foundUser);
     const api_key = foundUser.brokerDetail.apiKey;
     const api_secret = foundUser.brokerDetail.personalSecret;
     const requestToken = req.body.requestToken;

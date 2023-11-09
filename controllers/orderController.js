@@ -197,6 +197,14 @@ exports.placeLimtOrderNSE = async (req, res) => {
       userId,
     } = req.body;
 
+    const user = await User.findById(userId);
+    const api_key = user.brokerDetail.apiKey;
+    const access_token = user.brokerDetail.dailyAccessToken;
+
+    if (!access_token) {
+      return res.status(400).json("No access token found");
+    }
+
     const orderId = await limitOrderNSE(
       tradingsymbol,
       transaction_type,
@@ -207,35 +215,28 @@ exports.placeLimtOrderNSE = async (req, res) => {
       access_token
     );
 
-    const user = await User.findById(userId);
-    const api_key = user.brokerDetail.apiKey;
-    const access_token = user.brokerDetail.dailyAccessToken;
-    const time = new Date();
-
-    if (!access_token) {
-      return res.json("No access token fond");
-    }
-
     if (!orderId) {
-      return res.json("Order Id not generated. Error in data.");
+      return res.status(400).json("Order Id not generated. Error in data.");
+    } else {
+      console.log("orderId is " + orderId);
+      const orderStatus = await orderCheckingHandler(
+        orderId,
+        api_key,
+        access_token
+      );
+      console.log(orderStatus);
+      const time = new Date();
+      const newLog = new Log({
+        orderId,
+        orderStatus,
+        tradingsymbol,
+        time,
+        price,
+        transaction_type,
+        userId,
+      });
+      res.status(200).json({ newLog });
     }
-    console.log("orderId is " + orderId);
-    const orderStatus = await orderCheckingHandler(
-      orderId,
-      api_key,
-      access_token
-    );
-    console.log(orderStatus);
-    const newLog = new Log({
-      orderId,
-      orderStatus,
-      tradingsymbol,
-      time,
-      price,
-      transaction_type,
-      userId,
-    });
-
     await newLog.save();
   } catch (error) {
     console.log(error);
@@ -253,6 +254,14 @@ exports.placeLimtOrderNFO = async (req, res) => {
       userId,
     } = req.body;
 
+    const user = await User.findById(userId);
+    const api_key = user.brokerDetail.apiKey;
+    const access_token = user.brokerDetail.dailyAccessToken;
+
+    if (!access_token) {
+      return res.status(400).json("No access token found");
+    }
+
     const orderId = await limitOrderNFO(
       tradingsymbol,
       transaction_type,
@@ -263,35 +272,28 @@ exports.placeLimtOrderNFO = async (req, res) => {
       access_token
     );
 
-    const user = await User.findById(userId);
-    const api_key = user.brokerDetail.apiKey;
-    const access_token = user.brokerDetail.dailyAccessToken;
-
     if (!orderId) {
-      return res.json("Order Id not generated. Error in data.");
+      return res.status(400).json("Order Id not generated. Error in data.");
+    } else {
+      console.log("orderId is " + orderId);
+      const orderStatus = await orderCheckingHandler(
+        orderId,
+        api_key,
+        access_token
+      );
+      console.log(orderStatus);
+      const time = new Date();
+      const newLog = new Log({
+        orderId,
+        orderStatus,
+        tradingsymbol,
+        time,
+        price,
+        transaction_type,
+        userId,
+      });
+      res.status(200).json({ newLog });
     }
-
-    if (!access_token) {
-      return res.json("No access token fond");
-    }
-
-    console.log("orderId is " + orderId);
-    const orderStatus = await orderCheckingHandler(
-      orderId,
-      api_key,
-      access_token
-    );
-    console.log(orderStatus);
-    const newLog = new Log({
-      orderId,
-      orderStatus,
-      tradingsymbol,
-      time,
-      price,
-      transaction_type,
-      userId,
-    });
-
     await newLog.save();
   } catch (error) {
     console.log(error);
@@ -309,6 +311,14 @@ exports.placeLimtOrderMCX = async (req, res) => {
       userId,
     } = req.body;
 
+    const user = await User.findById(userId);
+    const api_key = user.brokerDetail.apiKey;
+    const access_token = user.brokerDetail.dailyAccessToken;
+
+    if (!access_token) {
+      return res.status(400).json("No access token found");
+    }
+
     const orderId = await limitOrderMCX(
       tradingsymbol,
       transaction_type,
@@ -319,34 +329,28 @@ exports.placeLimtOrderMCX = async (req, res) => {
       access_token
     );
 
-    const user = await User.findById(userId);
-    const api_key = user.brokerDetail.apiKey;
-    const access_token = user.brokerDetail.dailyAccessToken;
-
-    if (!access_token) {
-      return res.json("No access token fond");
-    }
-
     if (!orderId) {
-      return res.json("Order Id not generated. Error in data.");
+      return res.status(400).json("Order Id not generated. Error in data.");
+    } else {
+      console.log("orderId is " + orderId);
+      const orderStatus = await orderCheckingHandler(
+        orderId,
+        api_key,
+        access_token
+      );
+      console.log(orderStatus);
+      const time = new Date();
+      const newLog = new Log({
+        orderId,
+        orderStatus,
+        tradingsymbol,
+        time,
+        price,
+        transaction_type,
+        userId,
+      });
+      res.status(200).json({ newLog });
     }
-    console.log("orderId is " + orderId);
-    const orderStatus = await orderCheckingHandler(
-      orderId,
-      api_key,
-      access_token
-    );
-    console.log(orderStatus);
-    const newLog = new Log({
-      orderId,
-      orderStatus,
-      tradingsymbol,
-      time,
-      price,
-      transaction_type,
-      userId,
-    });
-
     await newLog.save();
   } catch (error) {
     console.log(error);
@@ -379,5 +383,3 @@ exports.getPositions = async (req, res) => {
     });
   }
 };
-
-
