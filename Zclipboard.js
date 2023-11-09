@@ -6,25 +6,31 @@ module.exports.genSession = async (req, res) => {
     const requestToken = req.body.requestToken;
     let daily_access_token = null;
     let enctoken = null;
-
-    const kc = new KiteConnect({
-      api_key: api_key,
-    });
-    await kc
-      .generateSession(requestToken, api_secret)
-      .then(function (response) {
-        console.log(response);
-        daily_access_token = response.access_token;
-        enctoken = response.enctoken;
-        // init()
-      })
-      .catch(function (err) {
-        // console.log(err)
-        return res.status(500).json({
-          message: "An error occurred redirect and try again to save",
-          err,
-        });
+    if (!api_secret || !api_key) {
+      return res.status(500).json({
+        message: "api key or personal secret not saved contact admin",
       });
+    } else {
+      const kc = new KiteConnect({
+        api_key: api_key,
+      });
+      await kc
+        .generateSession(requestToken, api_secret)
+        .then(function (response) {
+          console.log(response);
+          daily_access_token = response.access_token;
+          enctoken = response.enctoken;
+          // init()
+        })
+        .catch(function (err) {
+          console.log(err);
+          return res.status(500).json({
+            message: "An error occurred redirect and try again to save",
+            err,
+          });
+        });
+    }
+
     if (daily_access_token && enctoken) {
       await User.findByIdAndUpdate(
         req.user.id,
@@ -49,4 +55,4 @@ module.exports.genSession = async (req, res) => {
       error,
     });
   }
-};
+}
