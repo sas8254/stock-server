@@ -13,5 +13,11 @@ router.get("/:Id", authMiddleware.isAdmin, stockController.getStock);
 router.patch("/:Id", authMiddleware.isAdmin, stockController.editStock);
 
 router.delete("/:Id", authMiddleware.isAdmin, stockController.deleteStock);
-// another route for get stock by name
+
+router.get(
+  "/get-stock-by-name/:name",
+  authMiddleware.isAdmin,
+  stockController.getStockByName
+);
+
 module.exports = router;

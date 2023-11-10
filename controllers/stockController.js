@@ -57,6 +57,23 @@ exports.getStock = async (req, res) => {
   }
 };
 
+exports.getStockByName = async (req, res) => {
+  try {
+    const stock = await Stock.findOne({ name: req.params.name });
+    if (stock === null) {
+      return res.json("No stock found!");
+    }
+    res.status(200).json({
+      stock,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred",
+      error,
+    });
+  }
+};
+
 exports.getAllStocks = async (req, res) => {
   try {
     const stock = await Stock.find({});
