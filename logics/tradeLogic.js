@@ -1,13 +1,11 @@
-const kiteConnection = require("../kiteConnection/kiteConnection");
-const jadejaOrderCrudeOIlMini = require("../orders/jadejaOrderCrudeOilMini");
-const jadejaOrderCrudeOIl = require("../orders/jadejaOrderCrudeOil");
-const jadejaOrderNiftyFifty = require("../orders/jadejaOrderNiftyFifty");
-const jadejaOrderFinNifty = require("../orders/jadejaOrderFinNifty");
-const jadejaOrderBankNifty = require("../orders/jadejaOrderBankNifty");
-const logFilePath = "Logs\\";
-const fs = require("fs");
+const apiCenter = require("../utils/apiCenter");
+const jadejaOrderCrudeOIlMini = require("./jadejaOrderCrudeOilMini");
+const jadejaOrderCrudeOIl = require("./jadejaOrderCrudeOil");
+const jadejaOrderNiftyFifty = require("./jadejaOrderNiftyFifty");
+const jadejaOrderFinNifty = require("./jadejaOrderFinNifty");
+const jadejaOrderBankNifty = require("./jadejaOrderBankNifty");
 
-module.exports.minutesToHour = (ary) => {
+const minutesToHour = (ary) => {
   let lastMinutesCandles;
   if (
     +ary.slice(-1)[0][0].split("T")[1].split(":")[1] === new Date().getMinutes()
@@ -26,7 +24,7 @@ module.exports.minutesToHour = (ary) => {
   const close = lastMinutesCandles[lastMinutesCandles.length - 1][4];
   return [open, high, low, close];
 };
-module.exports.minutesToTenMinute = (ary) => {
+const minutesToTenMinute = (ary) => {
   let lastMinutesCandles;
   if (
     +ary.slice(-1)[0][0].split("T")[1].split(":")[1] === new Date().getMinutes()
@@ -45,14 +43,14 @@ module.exports.minutesToTenMinute = (ary) => {
   const close = lastMinutesCandles[lastMinutesCandles.length - 1][4];
   return [open, high, low, close];
 };
-module.exports.heikinConverter = (aryy) => {
+const heikinConverter = (aryy) => {
   const arrivedAry = [...aryy];
   const dP = (num) => {
     return Number(Math.round(num + "e" + 2) + "e-" + 2).toFixed(2);
   };
   // console.log(JSON.stringify(arrivedAry))
   const firstHeikinAry = [];
-  const dataProcess = arrivedAry.map((e, index) => {
+  const processedData = arrivedAry.map((e, index) => {
     let close, high, open, low, flag;
     if (index === 0) {
       close = (e[0] + e[1] + e[2] + e[3]) / 4;
@@ -74,17 +72,14 @@ module.exports.heikinConverter = (aryy) => {
   return firstHeikinAry;
 };
 
-module.exports.oneHourlyCrudeOIlDesicionMaker = async (
-  instrument_token,
-  trading_symbol,
-  exchange,
-  lot_size
-) => {
+module.exports.oneHourlyCrudeOIlDesicionMaker = async (stock) => {
   try {
-    const hourlyRowCandles = await kiteConnection.getHoursMain(
-      instrument_token
+    const hourlyRowCandles = await apiCenter.getHoursMain(
+      stock.brokerDetail.instrumentToken
     );
-    const minutesData = await kiteConnection.getMinutesMain(instrument_token);
+    const minutesData = await apiCenter.getMinutesMain(
+      stock.brokerDetail.instrumentToken
+    );
 
     const rowCandles = [...hourlyRowCandles];
     if (
@@ -100,28 +95,32 @@ module.exports.oneHourlyCrudeOIlDesicionMaker = async (
       rowCandles.pop();
     }
 
-    const lastHourCandle = this.minutesToHour(minutesData);
+    const lastHourCandle = minutesToHour(minutesData);
 
     // console.log(lastHourCandle)
     const arry = rowCandles.slice(-40).map((e) => [e[1], e[2], e[3], e[4]]);
-    const heikincandleData = this.heikinConverter([...arry, lastHourCandle]);
+    const heikincandleData = heikinConverter([...arry, lastHourCandle]);
     // console.log(JSON.stringify(heikincandleData))
     jadejaOrderCrudeOIl.jadejaOrderHandler(
       heikincandleData,
-      instrument_token,
-      trading_symbol,
-      exchange,
-      lot_size
+      stock.brokerDetail.instrumentToken,
+      stock.brokerDetail.tradingSymbol,
+      stock.brokerDetail.exchange,
+      stock.brokerDetail.lotSize
     );
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-module.exports.oneHourlyCrudeOilMiniDesicionMaker = async (stockDetail) => {
+module.exports.oneHourlyCrudeOilMiniDesicionMaker = async (stock) => {
   try {
-    const hourlyRowCandles = await kiteConnection.getHoursMain(
-      instrument_token
+    const hourlyRowCandles = await apiCenter.getHoursMain(
+      stock.brokerDetail.instrumentToken
     );
-    const minutesData = await kiteConnection.getMinutesMain(instrument_token);
+    const minutesData = await apiCenter.getMinutesMain(
+      stock.brokerDetail.instrumentToken
+    );
 
     const rowCandles = [...hourlyRowCandles];
     // console.log(rowCandles)
@@ -147,31 +146,30 @@ module.exports.oneHourlyCrudeOilMiniDesicionMaker = async (stockDetail) => {
       rowCandles.pop();
     }
 
-    const lastHourCandle = this.minutesToHour(minutesData);
+    const lastHourCandle = minutesToHour(minutesData);
 
     // console.log(lastHourCandle)
 
     const arry = rowCandles.slice(-40).map((e) => [e[1], e[2], e[3], e[4]]);
     // console.log(JSON.stringify([...arry, lastHourCandle]))
 
-    const heikincandleData = this.heikinConverter([...arry, lastHourCandle]);
+    const heikincandleData = heikinConverter([...arry, lastHourCandle]);
     //   console.log(heikincandleData)
     console.log(JSON.stringify(heikincandleData));
     jadejaOrderCrudeOIlMini.jadejaOrderHandler(heikincandleData, stockDetail);
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-module.exports.oneHourlyNiftyDesicionMaker = async (
-  instrument_token,
-  trading_symbol,
-  exchange,
-  lot_size
-) => {
+module.exports.oneHourlyNiftyDesicionMaker = async (stock) => {
   try {
-    const hourlyRowCandles = await kiteConnection.getHoursMain(
-      instrument_token
+    const hourlyRowCandles = await apiCenter.getHoursMain(
+      stock.brokerDetail.instrumentToken
     );
-    const minutesData = await kiteConnection.getMinutesMain(instrument_token);
+    const minutesData = await apiCenter.getMinutesMain(
+      stock.brokerDetail.instrumentToken
+    );
 
     const rowCandles = [...hourlyRowCandles];
     if (
@@ -187,33 +185,32 @@ module.exports.oneHourlyNiftyDesicionMaker = async (
       rowCandles.pop();
     }
 
-    const lastHourCandle = this.minutesToHour(minutesData);
+    const lastHourCandle = minutesToHour(minutesData);
 
     // console.log(lastHourCandle)
     const arry = rowCandles.slice(-40).map((e) => [e[1], e[2], e[3], e[4]]);
-    const heikincandleData = this.heikinConverter([...arry, lastHourCandle]);
+    const heikincandleData = heikinConverter([...arry, lastHourCandle]);
     // console.log(JSON.stringify(heikincandleData))
     jadejaOrderNiftyFifty.jadejaOrderHandler(
       heikincandleData,
-      instrument_token,
-      trading_symbol,
-      exchange,
-      lot_size
+      stock.brokerDetail.instrumentToken,
+      stock.brokerDetail.tradingSymbol,
+      stock.brokerDetail.exchange,
+      stock.brokerDetail.lotSize
     );
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-module.exports.oneHourlyBankNiftyDesicionMaker = async (
-  instrument_token,
-  trading_symbol,
-  exchange,
-  lot_size
-) => {
+module.exports.oneHourlyBankNiftyDesicionMaker = async (stock) => {
   try {
-    const hourlyRowCandles = await kiteConnection.getHoursMain(
-      instrument_token
+    const hourlyRowCandles = await apiCenter.getHoursMain(
+      stock.brokerDetail.instrumentToken
     );
-    const minutesData = await kiteConnection.getMinutesMain(instrument_token);
+    const minutesData = await apiCenter.getMinutesMain(
+      stock.brokerDetail.instrumentToken
+    );
 
     const rowCandles = [...hourlyRowCandles];
     // console.log(rowCandles)
@@ -230,33 +227,32 @@ module.exports.oneHourlyBankNiftyDesicionMaker = async (
       rowCandles.pop();
     }
 
-    const lastHourCandle = this.minutesToHour(minutesData);
+    const lastHourCandle = minutesToHour(minutesData);
 
     // console.log(lastHourCandle)
     const arry = rowCandles.slice(-40).map((e) => [e[1], e[2], e[3], e[4]]);
-    const heikincandleData = this.heikinConverter([...arry, lastHourCandle]);
+    const heikincandleData = heikinConverter([...arry, lastHourCandle]);
     // console.log(JSON.stringify(heikincandleData))
     jadejaOrderBankNifty.jadejaOrderHandler(
       heikincandleData,
-      instrument_token,
-      trading_symbol,
-      exchange,
-      lot_size
+      stock.brokerDetail.instrumentToken,
+      stock.brokerDetail.tradingSymbol,
+      stock.brokerDetail.exchange,
+      stock.brokerDetail.lotSize
     );
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-module.exports.lastFiveMinuteBankNiftyDesicionMaker = async (
-  instrument_token,
-  trading_symbol,
-  exchange,
-  lot_size
-) => {
+module.exports.lastFiveMinuteBankNiftyDesicionMaker = async (stock) => {
   try {
-    const hourlyRowCandles = await kiteConnection.getHoursMain(
-      instrument_token
+    const hourlyRowCandles = await apiCenter.getHoursMain(
+      stock.brokerDetail.instrumentToken
     );
-    const minutesData = await kiteConnection.getMinutesMain(instrument_token);
+    const minutesData = await apiCenter.getMinutesMain(
+      stock.brokerDetail.instrumentToken
+    );
 
     const rowCandles = [...hourlyRowCandles];
     // console.log(rowCandles)
@@ -274,37 +270,33 @@ module.exports.lastFiveMinuteBankNiftyDesicionMaker = async (
       rowCandles.pop();
     }
     // console.log(rowCandles)
-    const lastTenMinuteCandle = this.minutesToTenMinute(minutesData);
+    const lastTenMinuteCandle = minutesToTenMinute(minutesData);
 
     console.log(lastTenMinuteCandle);
     const arry = rowCandles.slice(-40).map((e) => [e[1], e[2], e[3], e[4]]);
 
-    const heikincandleData = this.heikinConverter([
-      ...arry,
-      lastTenMinuteCandle,
-    ]);
+    const heikincandleData = heikinConverter([...arry, lastTenMinuteCandle]);
     // console.log(JSON.stringify(heikincandleData))
     jadejaOrderBankNifty.jadejaOrderHandler(
       heikincandleData,
-      instrument_token,
-      trading_symbol,
-      exchange,
-      lot_size
+      stock.brokerDetail.instrumentToken,
+      stock.brokerDetail.tradingSymbol,
+      stock.brokerDetail.exchange,
+      stock.brokerDetail.lotSize
     );
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-module.exports.oneHourlyFinNiftyDesicionMaker = async (
-  instrument_token,
-  trading_symbol,
-  exchange,
-  lot_size
-) => {
+module.exports.oneHourlyFinNiftyDesicionMaker = async (stock) => {
   try {
-    const hourlyRowCandles = await kiteConnection.getHoursMain(
-      instrument_token
+    const hourlyRowCandles = await apiCenter.getHoursMain(
+      stock.brokerDetail.instrumentToken
     );
-    const minutesData = await kiteConnection.getMinutesMain(instrument_token);
+    const minutesData = await apiCenter.getMinutesMain(
+      stock.brokerDetail.instrumentToken
+    );
 
     const rowCandles = [...hourlyRowCandles];
     if (
@@ -320,18 +312,20 @@ module.exports.oneHourlyFinNiftyDesicionMaker = async (
       rowCandles.pop();
     }
 
-    const lastHourCandle = this.minutesToHour(minutesData);
+    const lastHourCandle = minutesToHour(minutesData);
 
     // console.log(lastHourCandle)
     const arry = rowCandles.slice(-40).map((e) => [e[1], e[2], e[3], e[4]]);
-    const heikincandleData = this.heikinConverter([...arry, lastHourCandle]);
+    const heikincandleData = heikinConverter([...arry, lastHourCandle]);
     // console.log(JSON.stringify(heikincandleData))
     jadejaOrderFinNifty.jadejaOrderHandler(
       heikincandleData,
-      instrument_token,
-      trading_symbol,
-      exchange,
-      lot_size
+      stock.brokerDetail.instrumentToken,
+      stock.brokerDetail.tradingSymbol,
+      stock.brokerDetail.exchange,
+      stock.brokerDetail.lotSize
     );
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };

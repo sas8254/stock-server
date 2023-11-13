@@ -5,7 +5,7 @@ const borkerSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  instrumentName: {
+  tradingSymbol: {
     type: String,
     required: true,
   },

@@ -1,8 +1,7 @@
 require("dotenv").config()
 const apiCenter = require("../apiCenter")
 const KiteConnect = require("kiteconnect").KiteConnect
-const api_key = process.env.KITE_API_KEY
-// const whatsapp = require("../business/whatsapptw")
+const api_key = process.env.KITE_API_KEY;
 const mailer = require("../communication/mailer")
 const api_secret = process.env.KITE_API_SECRET
 

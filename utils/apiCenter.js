@@ -1,18 +1,15 @@
 require("dotenv").config();
 const axios = require("axios");
 const mailer = require("./mailer");
+const User = require("../models/user");
 
-module.exports.instance = () => {
+const instance = () => {
   return axios.create({
     baseURL: `${process.env.ZERODHA_URL}`,
   });
 };
 
-module.exports.getCandleData = async (
-  instrument_token,
-  interval,
-  enc_token
-) => {
+const getCandleData = async (instrument_token, interval) => {
   let toDate = new Date();
   let formDateForHour = new Date();
   let formDateForMinute = new Date();
@@ -21,11 +18,11 @@ module.exports.getCandleData = async (
   formDateForHour = formDateForHour.toISOString().split("T")[0];
   formDateForMinute = formDateForMinute.toISOString().split("T")[0];
   toDate = new Date().toISOString().split("T")[0];
-  // console.log("hii enc token" + enc_token)
-  console.log(toDate);
-  console.log("at api" + instrument_token);
-  const newInstance = this.instance();
+
+  const newInstance = instance();
   try {
+    const user = await User.findOne({ name: "admin" });
+    let enc_token = user.brokerDetail.enctoken;
     const response = await newInstance.get(
       `/oms/instruments/historical/${instrument_token}/${interval}?user_id=${
         process.env.KITE_USER_ID
@@ -44,4 +41,19 @@ module.exports.getCandleData = async (
     mailer.sendMail("something went wrong");
     console.log(error);
   }
+};
+
+const getMinutesMain = async (inst_token) => {
+  const response = await getCandleData(inst_token, "minute");
+  return response;
+};
+const getHoursMain = async (inst_token) => {
+  const response = await getCandleData(inst_token, "60minute");
+  return response;
+};
+
+module.exports = {
+  getCandleData,
+  getMinutesMain,
+  getHoursMain,
 };
