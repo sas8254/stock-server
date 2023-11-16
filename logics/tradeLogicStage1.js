@@ -1,9 +1,5 @@
 const apiCenter = require("../utils/apiCenter");
-const jadejaOrderCrudeOIlMini = require("./jadejaOrderCrudeOilMini");
-const jadejaOrderCrudeOIl = require("./jadejaOrderCrudeOil");
-const jadejaOrderNiftyFifty = require("./jadejaOrderNiftyFifty");
-const jadejaOrderFinNifty = require("./jadejaOrderFinNifty");
-const jadejaOrderBankNifty = require("./jadejaOrderBankNifty");
+const orderDecisionMaker = require("./orderDecisionMaker");
 
 const minutesToHour = (ary) => {
   let lastMinutesCandles;
@@ -72,47 +68,6 @@ const heikinConverter = (aryy) => {
   return firstHeikinAry;
 };
 
-module.exports.oneHourlyCrudeOIlDesicionMaker = async (stock) => {
-  try {
-    const hourlyRowCandles = await apiCenter.getHoursMain(
-      stock.brokerDetail.instrumentToken
-    );
-    const minutesData = await apiCenter.getMinutesMain(
-      stock.brokerDetail.instrumentToken
-    );
-
-    const rowCandles = [...hourlyRowCandles];
-    if (
-      +rowCandles.slice(-1)[0][0].split("T")[1].split(":")[0] ===
-      new Date().getHours()
-    ) {
-      rowCandles.pop();
-    }
-    if (
-      +rowCandles.slice(-1)[0][0].split("T")[1].split(":")[0] ===
-      new Date().getHours() - 1
-    ) {
-      rowCandles.pop();
-    }
-
-    const lastHourCandle = minutesToHour(minutesData);
-
-    // console.log(lastHourCandle)
-    const arry = rowCandles.slice(-40).map((e) => [e[1], e[2], e[3], e[4]]);
-    const heikincandleData = heikinConverter([...arry, lastHourCandle]);
-    // console.log(JSON.stringify(heikincandleData))
-    jadejaOrderCrudeOIl.jadejaOrderHandler(
-      heikincandleData,
-      stock.brokerDetail.instrumentToken,
-      stock.brokerDetail.tradingSymbol,
-      stock.brokerDetail.exchange,
-      stock.brokerDetail.lotSize
-    );
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 module.exports.oneHourlyCrudeOilMiniDesicionMaker = async (stock) => {
   try {
     const hourlyRowCandles = await apiCenter.getHoursMain(
@@ -125,14 +80,6 @@ module.exports.oneHourlyCrudeOilMiniDesicionMaker = async (stock) => {
     const rowCandles = [...hourlyRowCandles];
     // console.log(rowCandles)
 
-    fs.writeFile(
-      `${logFilePath}${new Date().getDate()}-${new Date().getHours()}-1.json`,
-      JSON.stringify(rowCandles),
-      function (err) {
-        if (err) throw err;
-        console.log(" 1 Saved!");
-      }
-    );
     if (
       +rowCandles.slice(-1)[0][0].split("T")[1].split(":")[0] ===
       new Date().getHours()
@@ -155,14 +102,14 @@ module.exports.oneHourlyCrudeOilMiniDesicionMaker = async (stock) => {
 
     const heikincandleData = heikinConverter([...arry, lastHourCandle]);
     //   console.log(heikincandleData)
-    console.log(JSON.stringify(heikincandleData));
-    jadejaOrderCrudeOIlMini.jadejaOrderHandler(heikincandleData, stockDetail);
+    // console.log(JSON.stringify(heikincandleData));
+    orderDecisionMaker.crudeOilMiniOrderHandler(heikincandleData, stock);
   } catch (error) {
     console.log(error);
   }
 };
 
-module.exports.oneHourlyNiftyDesicionMaker = async (stock) => {
+module.exports.oneHourlyNiftyFiftyDesicionMaker = async (stock) => {
   try {
     const hourlyRowCandles = await apiCenter.getHoursMain(
       stock.brokerDetail.instrumentToken
@@ -191,13 +138,7 @@ module.exports.oneHourlyNiftyDesicionMaker = async (stock) => {
     const arry = rowCandles.slice(-40).map((e) => [e[1], e[2], e[3], e[4]]);
     const heikincandleData = heikinConverter([...arry, lastHourCandle]);
     // console.log(JSON.stringify(heikincandleData))
-    jadejaOrderNiftyFifty.jadejaOrderHandler(
-      heikincandleData,
-      stock.brokerDetail.instrumentToken,
-      stock.brokerDetail.tradingSymbol,
-      stock.brokerDetail.exchange,
-      stock.brokerDetail.lotSize
-    );
+    orderDecisionMaker.oneHourlyNiftyFiftyOrderHandler(heikincandleData, stock);
   } catch (error) {
     console.log(error);
   }
@@ -233,12 +174,9 @@ module.exports.oneHourlyBankNiftyDesicionMaker = async (stock) => {
     const arry = rowCandles.slice(-40).map((e) => [e[1], e[2], e[3], e[4]]);
     const heikincandleData = heikinConverter([...arry, lastHourCandle]);
     // console.log(JSON.stringify(heikincandleData))
-    jadejaOrderBankNifty.jadejaOrderHandler(
+    orderDecisionMaker.oneHourlyBankNiftyFiftyOrderHandler(
       heikincandleData,
-      stock.brokerDetail.instrumentToken,
-      stock.brokerDetail.tradingSymbol,
-      stock.brokerDetail.exchange,
-      stock.brokerDetail.lotSize
+      stock
     );
   } catch (error) {
     console.log(error);
@@ -277,53 +215,9 @@ module.exports.lastFiveMinuteBankNiftyDesicionMaker = async (stock) => {
 
     const heikincandleData = heikinConverter([...arry, lastTenMinuteCandle]);
     // console.log(JSON.stringify(heikincandleData))
-    jadejaOrderBankNifty.jadejaOrderHandler(
+    orderDecisionMaker.lastFiveMinuteBankNiftyFiftyOrderHandler(
       heikincandleData,
-      stock.brokerDetail.instrumentToken,
-      stock.brokerDetail.tradingSymbol,
-      stock.brokerDetail.exchange,
-      stock.brokerDetail.lotSize
-    );
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-module.exports.oneHourlyFinNiftyDesicionMaker = async (stock) => {
-  try {
-    const hourlyRowCandles = await apiCenter.getHoursMain(
-      stock.brokerDetail.instrumentToken
-    );
-    const minutesData = await apiCenter.getMinutesMain(
-      stock.brokerDetail.instrumentToken
-    );
-
-    const rowCandles = [...hourlyRowCandles];
-    if (
-      +rowCandles.slice(-1)[0][0].split("T")[1].split(":")[0] ===
-      new Date().getHours()
-    ) {
-      rowCandles.pop();
-    }
-    if (
-      +rowCandles.slice(-1)[0][0].split("T")[1].split(":")[0] ===
-      new Date().getHours() - 1
-    ) {
-      rowCandles.pop();
-    }
-
-    const lastHourCandle = minutesToHour(minutesData);
-
-    // console.log(lastHourCandle)
-    const arry = rowCandles.slice(-40).map((e) => [e[1], e[2], e[3], e[4]]);
-    const heikincandleData = heikinConverter([...arry, lastHourCandle]);
-    // console.log(JSON.stringify(heikincandleData))
-    jadejaOrderFinNifty.jadejaOrderHandler(
-      heikincandleData,
-      stock.brokerDetail.instrumentToken,
-      stock.brokerDetail.tradingSymbol,
-      stock.brokerDetail.exchange,
-      stock.brokerDetail.lotSize
+      stock
     );
   } catch (error) {
     console.log(error);

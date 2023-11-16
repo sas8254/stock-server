@@ -19,7 +19,7 @@ const borkerSchema = new mongoose.Schema({
   },
   exchange: {
     type: String,
-    enum: ["NFO", "MCX"],
+    enum: ["NFO", "MCX", "BSE", "NSE"],
   },
   expiryDate: {
     type: Date,

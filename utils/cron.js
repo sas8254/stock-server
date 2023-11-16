@@ -1,5 +1,5 @@
 const cron = require("node-cron");
-const tradeLogic = require("../logics/tradeLogic");
+const tradeLogicStage1 = require("../logics/tradeLogicStage1");
 const Stock = require("../models/stock");
 
 module.exports.scheduleCrudeOilMini = async () => {
@@ -9,7 +9,7 @@ module.exports.scheduleCrudeOilMini = async () => {
       cron.schedule(
         "0 10-23 * * 1,2,3,4,5",
         () => {
-          tradeLogic.oneHourlyCrudeOilMiniDesicionMaker(stock);
+          tradeLogicStage1.oneHourlyCrudeOilMiniDesicionMaker(stock);
           console.log("run through trade cron");
         },
         {
@@ -30,7 +30,7 @@ module.exports.scheduleBankNifty = async () => {
       cron.schedule(
         "15 10-15 * * 1,2,3,4,5",
         () => {
-          tradeLogic.oneHourlyBankNiftyDesicionMaker(stock);
+          tradeLogicStage1.oneHourlyBankNiftyDesicionMaker(stock);
           console.log("run through trade cron");
         },
         {
@@ -41,7 +41,7 @@ module.exports.scheduleBankNifty = async () => {
       cron.schedule(
         "25 10- 15 * * 1,2,3,4,5",
         () => {
-          tradeLogic.lastFiveMinuteBankNiftyDesicionMaker(stock);
+          tradeLogicStage1.lastFiveMinuteBankNiftyDesicionMaker(stock);
           console.log("run through trade cron");
         },
         {
@@ -62,7 +62,7 @@ module.exports.scheduleNiftyFifty = async () => {
       cron.schedule(
         "17 10-15 * * 1,2,3,4,5",
         () => {
-          tradeLogic.oneHourlyNiftyDesicionMaker(stock);
+          tradeLogicStage1.oneHourlyNiftyFiftyDesicionMaker(stock);
           console.log("run through trade cron");
         },
         {
