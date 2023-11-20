@@ -23,7 +23,7 @@ exports.addUser = async (req, res) => {
       name,
       email,
       mobileNo,
-      password:hashedPassword,
+      password: hashedPassword,
       userRole,
       paymentDetail,
       membership,
@@ -47,15 +47,27 @@ exports.addUser = async (req, res) => {
 
 exports.getUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.Id).select(
-      "-brokerDetail.personalSecret -brokerDetail.dailyAccessToken"
-    );
-    if (user === null) {
-      return res.json("No user found!");
+    if (req.user.role === "admin") {
+      const user = await User.findById(req.params.Id).select(
+        "-brokerDetail.personalSecret -brokerDetail.dailyAccessToken"
+      );
+      if (!user) {
+        return res.status(404).json("No user found!");
+      }
+      res.status(200).json({
+        user,
+      });
+    } else {
+      const user = await User.findById(req.user.id).select(
+        "-brokerDetail.personalSecret -brokerDetail.dailyAccessToken"
+      );
+      if (!user) {
+        return res.status(404).json("No user found!");
+      }
+      res.status(200).json({
+        user,
+      });
     }
-    res.status(200).json({
-      user,
-    });
   } catch (error) {
     res.status(500).json({
       message: "An error occurred",
@@ -66,8 +78,9 @@ exports.getUser = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({})
-    .select("-brokerDetail.clientId -brokerDetail.personalSecret -brokerDetail.dailyAccessToken");
+    const users = await User.find({}).select(
+      "-brokerDetail.clientId -brokerDetail.personalSecret -brokerDetail.dailyAccessToken"
+    );
     res.status(200).json({
       users,
     });
@@ -94,26 +107,53 @@ exports.editUser = async (req, res) => {
       brokerDetail,
       stockDetail,
     } = req.body;
-
-    const user = await User.findByIdAndUpdate(
-      req.params.Id,
-      {
-        name,
-        email,
-        mobileNo,
-        userRole,
-        paymentDetail,
-        membership,
-        managerId,
-        isApprovedFromAdmin,
-        brokerDetail,
-        stockDetail,
-      },
-      { new: true }
-    );
-    res.status(200).json({
-      user,
-    });
+    if (req.user.role === "admin") {
+      const user = await User.findByIdAndUpdate(
+        req.params.Id,
+        {
+          name,
+          email,
+          mobileNo,
+          userRole,
+          paymentDetail,
+          membership,
+          managerId,
+          isApprovedFromAdmin,
+          brokerDetail,
+          stockDetail,
+        },
+        { new: true }
+      );
+      if (!user) {
+        return res.status(404).json("No user found!");
+      }
+      res.status(200).json({
+        user,
+      });
+    } else {
+      const user = await User.findByIdAndUpdate(
+        req.user.id,
+        {
+          name,
+          email,
+          mobileNo,
+          userRole,
+          paymentDetail,
+          membership,
+          managerId,
+          isApprovedFromAdmin,
+          brokerDetail,
+          stockDetail,
+        },
+        { new: true }
+      );
+      if (!user) {
+        return res.status(404).json("No user found!");
+      }
+      res.status(200).json({
+        user,
+      });
+    }
   } catch (error) {
     res.status(500).json({
       message: "An error occurred",

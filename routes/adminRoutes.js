@@ -18,13 +18,9 @@ router.get(
   adminController.getAllUsers
 );
 
-router.get("/get-user/:Id", authMiddleware.isAdmin, adminController.getUser);
+router.get("/get-user/:Id", authMiddleware.isUser, adminController.getUser);
 
-router.patch(
-  "/edit-user/:Id",
-  authMiddleware.isAdmin,
-  adminController.editUser
-);
+router.patch("/edit-user/:Id", authMiddleware.isUser, adminController.editUser);
 
 router.delete(
   "/delete-user/:Id",
