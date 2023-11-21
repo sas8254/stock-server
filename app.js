@@ -11,6 +11,8 @@ const orderRoutes = require("./routes/orderRoutes");
 const checkRoutes = require("./routes/checkRoutes");
 const bodyParser = require("body-parser");
 const path = require("path");
+const { healthChecker } = require("./controllers/checkController");
+const cron = require("./utils/cron");
 
 dotenv.config();
 
@@ -31,6 +33,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 app.options("*", cors());
+
+healthChecker();
+cron.scheduleBankNifty();
+cron.scheduleCrudeOilMini();
+cron.scheduleNiftyFifty();
 
 app.use("/users", userRoutes);
 app.use("/stocks", stockRoutes);

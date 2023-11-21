@@ -39,7 +39,7 @@ module.exports.crudeOilMiniOrderHandler = async (ary, stock) => {
         console.log(`Stock not found or status is already set to ${newStatus}`);
       }
 
-      await orderHandler.placeLimtOrderMCX(stock, price, orderType);
+      // await orderHandler.placeLimtOrderMCX(stock, price, orderType);
 
       console.log("sell order placed");
       mailer.sendMailToJadeja(
@@ -64,7 +64,7 @@ module.exports.crudeOilMiniOrderHandler = async (ary, stock) => {
         console.log(`Stock not found or status is already set to ${newStatus}`);
       }
 
-      await orderHandler.placeLimtOrderMCX(stock, price, orderType);
+      // await orderHandler.placeLimtOrderMCX(stock, price, orderType);
 
       mailer.sendMailToJadeja(
         `Alert: BUY order of ${stock.brokerDetail.tradingSymbol} placed at ${price} ,last heikin data is open : ${lastTwoAry[1][0]},high : ${lastTwoAry[1][1]},low : ${lastTwoAry[1][2]},close : ${lastTwoAry[1][3]}, flag:${lastTwoAry[1][4]}`
@@ -119,7 +119,7 @@ module.exports.crudeOilOrderHandler = async (ary, stock) => {
         console.log(`Stock not found or status is already set to ${newStatus}`);
       }
 
-      await orderHandler.placeLimtOrderMCX(stock, price, orderType);
+      // await orderHandler.placeLimtOrderMCX(stock, price, orderType);
 
       console.log("sell order placed");
       mailer.sendMailToJadeja(
@@ -144,7 +144,7 @@ module.exports.crudeOilOrderHandler = async (ary, stock) => {
         console.log(`Stock not found or status is already set to ${newStatus}`);
       }
 
-      await orderHandler.placeLimtOrderMCX(stock, price, orderType);
+      // await orderHandler.placeLimtOrderMCX(stock, price, orderType);
 
       mailer.sendMailToJadeja(
         `Alert: BUY order of ${stock.brokerDetail.tradingSymbol} placed at ${price} ,last heikin data is open : ${lastTwoAry[1][0]},high : ${lastTwoAry[1][1]},low : ${lastTwoAry[1][2]},close : ${lastTwoAry[1][3]}, flag:${lastTwoAry[1][4]}`
@@ -199,7 +199,7 @@ module.exports.oneHourlyNiftyFiftyOrderHandler = async (ary, stock) => {
         console.log(`Stock not found or status is already set to ${newStatus}`);
       }
 
-      await orderHandler.placeLimtOrderNFO(stock, price, orderType);
+      // await orderHandler.placeLimtOrderNFO(stock, price, orderType);
 
       console.log("sell order placed");
       mailer.sendMailToJadeja(
@@ -224,7 +224,7 @@ module.exports.oneHourlyNiftyFiftyOrderHandler = async (ary, stock) => {
         console.log(`Stock not found or status is already set to ${newStatus}`);
       }
 
-      await orderHandler.placeLimtOrderNFO(stock, price, orderType);
+      // await orderHandler.placeLimtOrderNFO(stock, price, orderType);
 
       mailer.sendMailToJadeja(
         `Alert: BUY order of ${stock.brokerDetail.tradingSymbol} placed at ${price} ,last heikin data is open : ${lastTwoAry[1][0]},high : ${lastTwoAry[1][1]},low : ${lastTwoAry[1][2]},close : ${lastTwoAry[1][3]}, flag:${lastTwoAry[1][4]}`
@@ -279,7 +279,7 @@ module.exports.oneHourlyBankNiftyFiftyOrderHandler = async (ary, stock) => {
         console.log(`Stock not found or status is already set to ${newStatus}`);
       }
 
-      await orderHandler.placeLimtOrderNFO(stock, price, orderType);
+      // await orderHandler.placeLimtOrderNFO(stock, price, orderType);
 
       console.log("sell order placed");
       mailer.sendMailToJadeja(
@@ -306,7 +306,7 @@ module.exports.oneHourlyBankNiftyFiftyOrderHandler = async (ary, stock) => {
         console.log(`Stock not found or status is already set to ${newStatus}`);
       }
 
-      await orderHandler.placeLimtOrderNFO(stock, price, orderType);
+      // await orderHandler.placeLimtOrderNFO(stock, price, orderType);
 
       mailer.sendMailToJadeja(
         `Alert: BUY order of ${stock.brokerDetail.tradingSymbol} placed at ${price} ,last heikin data is open : ${lastTwoAry[1][0]},high : ${lastTwoAry[1][1]},low : ${lastTwoAry[1][2]},close : ${lastTwoAry[1][3]}, flag:${lastTwoAry[1][4]}`
@@ -364,7 +364,7 @@ module.exports.lastFiveMinuteBankNiftyFiftyOrderHandler = async (
         console.log(`Stock not found or status is already set to ${newStatus}`);
       }
 
-      await orderHandler.placeLimtOrderNFO(stock, price, orderType);
+      // await orderHandler.placeLimtOrderNFO(stock, price, orderType);
 
       console.log("sell order placed");
       mailer.sendMailToJadeja(
@@ -391,7 +391,7 @@ module.exports.lastFiveMinuteBankNiftyFiftyOrderHandler = async (
         console.log(`Stock not found or status is already set to ${newStatus}`);
       }
 
-      await orderHandler.placeLimtOrderNFO(stock, price, orderType);
+      // await orderHandler.placeLimtOrderNFO(stock, price, orderType);
 
       mailer.sendMailToJadeja(
         `Alert: BUY order of ${stock.brokerDetail.tradingSymbol} placed at ${price} ,last heikin data is open : ${lastTwoAry[1][0]},high : ${lastTwoAry[1][1]},low : ${lastTwoAry[1][2]},close : ${lastTwoAry[1][3]}, flag:${lastTwoAry[1][4]}`
