@@ -5,7 +5,6 @@ const apiCenter = require("../utils/apiCenter")
 
 module.exports.crudeOilMiniOrderHandler = async (ary, stock) => {
    try {
-      // console.log(ary)
       const arrivedAry = ary.length > 0 && [...ary.slice(-2)]
       const lastTwoAry = [...arrivedAry]
       const minutesData = await apiCenter.getMinutesMain(stock.brokerDetail.instrumentToken)
@@ -14,9 +13,10 @@ module.exports.crudeOilMiniOrderHandler = async (ary, stock) => {
       let orderType = stock.status
 
       let orderplaced = false
-      const lastGreenCandle = ary[ary.findLastIndex((e) => e[4] === "green")]
 
-      const lastRedCandle = ary[ary.findLastIndex((e) => e[4] === "red")]
+      const lastGreenCandle = ary.reverse().find((e) => e[4] === "green")
+      const lastRedCandle = ary.reverse().find((e) => e[4] === "red")
+
       if (orderType === "BUY" && lastTwoAry[1][4] === "red" && lastGreenCandle[2] > lastTwoAry[1][3]) {
          orderplaced = true
 
@@ -77,8 +77,8 @@ module.exports.crudeOilOrderHandler = async (ary, stock) => {
       let orderType = stock.status
 
       let orderplaced = false
-      const lastGreenCandle = ary[ary.findLastIndex((e) => e[4] === "green")]
-      const lastRedCandle = ary[ary.findLastIndex((e) => e[4] === "red")]
+      const lastGreenCandle = ary.reverse().find((e) => e[4] === "green")
+      const lastRedCandle = ary.reverse().find((e) => e[4] === "red")
       if (orderType === "BUY" && lastTwoAry[1][4] === "red" && lastGreenCandle[2] > lastTwoAry[1][3]) {
          orderplaced = true
 
@@ -139,8 +139,8 @@ module.exports.oneHourlyNiftyFiftyOrderHandler = async (ary, stock) => {
       let orderType = stock.status
 
       let orderplaced = false
-      const lastGreenCandle = ary[ary.findLastIndex((e) => e[4] === "green")]
-      const lastRedCandle = ary[ary.findLastIndex((e) => e[4] === "red")]
+      const lastGreenCandle = ary.reverse().find((e) => e[4] === "green")
+      const lastRedCandle = ary.reverse().find((e) => e[4] === "red")
       if (orderType === "BUY" && lastTwoAry[1][4] === "red" && lastGreenCandle[2] > lastTwoAry[1][3]) {
          orderplaced = true
 
@@ -201,8 +201,8 @@ module.exports.oneHourlyBankNiftyFiftyOrderHandler = async (ary, stock) => {
       let orderType = stock.status
 
       let orderplaced = false
-      const lastGreenCandle = ary[ary.findLastIndex((e) => e[4] === "green")]
-      const lastRedCandle = ary[ary.findLastIndex((e) => e[4] === "red")]
+      const lastGreenCandle = ary.reverse().find((e) => e[4] === "green")
+      const lastRedCandle = ary.reverse().find((e) => e[4] === "red")
       if (orderType === "BUY" && lastTwoAry[1][4] === "red" && lastGreenCandle[2] > lastTwoAry[1][3]) {
          orderplaced = true
 
@@ -265,8 +265,8 @@ module.exports.lastFiveMinuteBankNiftyFiftyOrderHandler = async (ary, stock) => 
       let orderType = stock.status
 
       let orderplaced = false
-      const lastGreenCandle = ary[ary.findLastIndex((e) => e[4] === "green")]
-      const lastRedCandle = ary[ary.findLastIndex((e) => e[4] === "red")]
+      const lastGreenCandle = ary.reverse().find((e) => e[4] === "green")
+      const lastRedCandle = ary.reverse().find((e) => e[4] === "red")
       if (orderType === "BUY" && lastTwoAry[1][4] === "red" && lastGreenCandle[2] > lastTwoAry[1][3]) {
          orderplaced = true
 
@@ -329,8 +329,8 @@ module.exports.lastFiveMinuteNiftyFiftyOrderHandler = async (ary, stock) => {
       let orderType = stock.status
 
       let orderplaced = false
-      const lastGreenCandle = ary[ary.findLastIndex((e) => e[4] === "green")]
-      const lastRedCandle = ary[ary.findLastIndex((e) => e[4] === "red")]
+      const lastGreenCandle = ary.reverse().find((e) => e[4] === "green")
+      const lastRedCandle = ary.reverse().find((e) => e[4] === "red")
       if (orderType === "BUY" && lastTwoAry[1][4] === "red" && lastGreenCandle[2] > lastTwoAry[1][3]) {
          orderplaced = true
 
