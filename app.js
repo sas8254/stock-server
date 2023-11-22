@@ -34,7 +34,7 @@ app.use(bodyParser.json())
 app.use(cors())
 app.options("*", cors())
 
-healthChecker()
+// healthChecker()
 // cron.scheduleBankNifty()
 // cron.scheduleCrudeOilMini()
 // cron.scheduleNiftyFifty()
