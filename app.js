@@ -35,9 +35,9 @@ app.use(cors())
 app.options("*", cors())
 
 healthChecker()
-cron.scheduleBankNifty()
-cron.scheduleCrudeOilMini()
-cron.scheduleNiftyFifty()
+// cron.scheduleBankNifty()
+// cron.scheduleCrudeOilMini()
+// cron.scheduleNiftyFifty()
 
 app.use("/users", userRoutes)
 app.use("/stocks", stockRoutes)
