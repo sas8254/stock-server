@@ -187,8 +187,15 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
     const { tradingsymbol, transaction_type, exchange, stockId, price } =
       req.body;
 
-    const users = await User.find({
-      "stockDetail.stockId": new mongoose.Types.ObjectId(stockId),
+    const allUsers = await User.find({
+      "stockDetail.stockId": stockId,
+    }).lean();
+
+    const users = allUsers.map((user) => {
+      const specificStock = user.stockDetail.find((stock) => {
+        return stock.stockId.toString() === stockId;
+      });
+      return { ...user, stockDetail: specificStock };
     });
 
     return res.json(users);
