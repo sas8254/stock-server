@@ -196,11 +196,12 @@ exports.getPositions = async (req, res) => {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     });
-    // console.log(response);
+    console.log(response.data.data);
     if (response) {
-      res.status(200).json({ response });
+      res.status(200).json({ response: JSON.stringify(response.data.data) });
     }
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       message: "An error occurred",
       error,
