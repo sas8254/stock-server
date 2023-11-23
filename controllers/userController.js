@@ -1,3 +1,4 @@
+const user = require("../models/user");
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const KiteConnect = require("kiteconnect").KiteConnect;
@@ -62,16 +63,9 @@ module.exports.genSession = async (req, res) => {
     }
 
     if (daily_access_token && enctoken) {
-      await User.findByIdAndUpdate(
-        req.user.id,
-        {
-          $set: {
-            "brokerDetail.dailyAccessToken": daily_access_token,
-            "brokerDetail.enctoken": enctoken,
-          },
-        },
-        { new: true }
-      );
+      foundUser.brokerDetail.dailyAccessToken = daily_access_token;
+      foundUser.brokerDetail.enctoken = enctoken;
+      await foundUser.save();
       res.status(200).json({
         message: "dailyAccessToken saved successfully",
       });
@@ -85,7 +79,7 @@ module.exports.genSession = async (req, res) => {
       error,
     });
   }
-}
+};
 
 exports.signUp = async (req, res) => {
   try {

@@ -3,6 +3,7 @@ require("dotenv").config();
 const Log = require("../models/logs");
 const User = require("../models/user");
 const axios = require("axios");
+const { default: mongoose } = require("mongoose");
 
 const instance = () => {
   return axios.create({
@@ -67,6 +68,63 @@ exports.placeLimtOrderNSE = async (req, res) => {
   }
 };
 
+// exports.placeLimtOrderNSEForAll = async (req, res) => {
+//   try {
+//     const {
+//       tradingsymbol,
+//       transaction_type,
+//       exchange,
+//       // quantity,
+//       price,
+//       // userId,
+//     } = req.body;
+
+//     const user = await User.findById(userId);
+//     const api_key = user.brokerDetail.apiKey;
+//     const access_token = user.brokerDetail.dailyAccessToken;
+
+//     if (!access_token) {
+//       return res.status(400).json("No access token found");
+//     }
+
+//     const orderId = await orders.limitOrderNSE(
+//       tradingsymbol,
+//       transaction_type,
+//       exchange,
+//       quantity,
+//       price,
+//       api_key,
+//       access_token
+//     );
+
+//     if (!orderId) {
+//       return res.status(400).json("Order Id not generated. Error in data.");
+//     } else {
+//       console.log("orderId is " + orderId);
+//       const orderStatus = await orders.orderCheckingHandler(
+//         orderId,
+//         api_key,
+//         access_token
+//       );
+//       console.log(orderStatus);
+//       const time = new Date();
+//       const newLog = new Log({
+//         orderId,
+//         orderStatus,
+//         tradingsymbol,
+//         time,
+//         price,
+//         transaction_type,
+//         userId,
+//       });
+//       res.status(200).json({ newLog });
+//     }
+//     await newLog.save();
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
+
 exports.placeLimtOrderNFO = async (req, res) => {
   try {
     const {
@@ -77,6 +135,81 @@ exports.placeLimtOrderNFO = async (req, res) => {
       price,
       userId,
     } = req.body;
+
+    const user = await User.findById(userId);
+    const api_key = user.brokerDetail.apiKey;
+    const access_token = user.brokerDetail.dailyAccessToken;
+
+    if (!access_token) {
+      return res.status(400).json("No access token found");
+    }
+
+    const orderId = await orders.limitOrderNFO(
+      tradingsymbol,
+      transaction_type,
+      exchange,
+      quantity,
+      price,
+      api_key,
+      access_token
+    );
+
+    if (!orderId) {
+      return res.status(400).json("Order Id not generated. Error in data.");
+    } else {
+      console.log("orderId is " + orderId);
+      const orderStatus = await orders.orderCheckingHandler(
+        orderId,
+        api_key,
+        access_token
+      );
+      console.log(orderStatus);
+      const time = new Date();
+      const newLog = new Log({
+        orderId,
+        orderStatus,
+        tradingsymbol,
+        time,
+        price,
+        transaction_type,
+        userId,
+      });
+      res.status(200).json({ newLog });
+    }
+    await newLog.save();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.placeLimtOrderNFOForAll = async (req, res) => {
+  try {
+    const { tradingsymbol, transaction_type, exchange, stockId, price } =
+      req.body;
+
+    const allUsers = await User.find({
+      "stockDetail.stockId": stockId,
+    }).lean();
+
+    const users = allUsers.map((user) => {
+      const specificStock = user.stockDetail.find((stock) => {
+        return stock.stockId.toString() === stockId;
+      });
+      return { ...user, stockDetail: specificStock };
+    });
+
+    for (let user of users) {
+      try {
+        const foundUser = await User.findById(user._id);
+        const api_key = foundUser.brokerDetail.apiKey;
+        const access_token = foundUser.brokerDetail.dailyAccessToken;
+        console.log(foundUser.brokerDetail.clientId);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+    return res.json(users);
 
     const user = await User.findById(userId);
     const api_key = user.brokerDetail.apiKey;
