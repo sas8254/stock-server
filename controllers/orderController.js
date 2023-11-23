@@ -198,6 +198,17 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
       return { ...user, stockDetail: specificStock };
     });
 
+    for (let user of users) {
+      try {
+        const foundUser = await User.findById(user._id);
+        const api_key = foundUser.brokerDetail.apiKey;
+        const access_token = foundUser.brokerDetail.dailyAccessToken;
+        console.log(foundUser.brokerDetail.clientId);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
     return res.json(users);
 
     const user = await User.findById(userId);

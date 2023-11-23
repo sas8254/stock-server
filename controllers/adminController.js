@@ -94,36 +94,20 @@ exports.getAllUsers = async (req, res) => {
 
 exports.editUser = async (req, res) => {
   // return res.send(req.body);
+
   try {
-    const {
-      name,
-      email,
-      mobileNo,
-      userRole,
-      paymentDetail,
-      membership,
-      managerId,
-      isApprovedFromAdmin,
-      brokerDetail,
-      stockDetail,
-    } = req.body;
+  
+    const updateFields = { ...req.body };
+    if (req.body.brokerDetail) {
+      for (let field in req.body.brokerDetail) {
+        updateFields[`brokerDetail.${field}`] = req.body.brokerDetail[field];
+      }
+      delete updateFields.brokerDetail;
+    }
     if (req.user.role === "admin") {
-      const user = await User.findByIdAndUpdate(
-        req.params.Id,
-        {
-          name,
-          email,
-          mobileNo,
-          userRole,
-          paymentDetail,
-          membership,
-          managerId,
-          isApprovedFromAdmin,
-          brokerDetail,
-          stockDetail,
-        },
-        { new: true }
-      );
+      const user = await User.findByIdAndUpdate(req.params.Id, updateFields, {
+        new: true,
+      });
       if (!user) {
         return res.status(404).json("No user found!");
       }
@@ -131,22 +115,9 @@ exports.editUser = async (req, res) => {
         user,
       });
     } else {
-      const user = await User.findByIdAndUpdate(
-        req.user.id,
-        {
-          name,
-          email,
-          mobileNo,
-          userRole,
-          paymentDetail,
-          membership,
-          managerId,
-          isApprovedFromAdmin,
-          brokerDetail,
-          stockDetail,
-        },
-        { new: true }
-      );
+      const user = await User.findByIdAndUpdate(req.user.id, updateFields, {
+        new: true,
+      });
       if (!user) {
         return res.status(404).json("No user found!");
       }
