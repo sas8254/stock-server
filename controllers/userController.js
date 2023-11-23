@@ -1,4 +1,3 @@
-const user = require("../models/user");
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const KiteConnect = require("kiteconnect").KiteConnect;
@@ -86,7 +85,7 @@ module.exports.genSession = async (req, res) => {
       error,
     });
   }
-}
+};
 
 exports.signUp = async (req, res) => {
   try {

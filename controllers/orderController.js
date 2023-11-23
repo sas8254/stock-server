@@ -2,6 +2,7 @@ const orders = require("../utils/orderFunctions");
 require("dotenv").config();
 const Log = require("../models/logs");
 const User = require("../models/user");
+const Stock = require("../models/stock");
 const axios = require("axios");
 const { default: mongoose } = require("mongoose");
 
@@ -184,8 +185,10 @@ exports.placeLimtOrderNFO = async (req, res) => {
 
 exports.placeLimtOrderNFOForAll = async (req, res) => {
   try {
-    const { tradingsymbol, transaction_type, exchange, stockId, price } =
-      req.body;
+    const { transaction_type, stockId, price } = req.body;
+    const stock = await Stock.findById(stockId);
+    const exchange = stock.brokerDetail.exchange;
+    const tradingsymbol = stock.brokerDetail.tradingSymbol;
 
     const allUsers = await User.find({
       "stockDetail.stockId": stockId,
@@ -199,59 +202,49 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
     });
 
     for (let user of users) {
-      try {
-        const foundUser = await User.findById(user._id);
-        const api_key = foundUser.brokerDetail.apiKey;
-        const access_token = foundUser.brokerDetail.dailyAccessToken;
-        console.log(foundUser.brokerDetail.clientId);
-      } catch (err) {
-        console.log(err);
+      const foundUser = await User.findById(user._id);
+      const api_key = foundUser.brokerDetail.apiKey;
+      const access_token = foundUser.brokerDetail.dailyAccessToken;
+      const quantity = foundUser.stockDetail[0].quantity;
+      console.log(quantity);
+
+      if (!access_token) {
+        return res.status(400).json("No access token found");
       }
-    }
 
-    return res.json(users);
-
-    const user = await User.findById(userId);
-    const api_key = user.brokerDetail.apiKey;
-    const access_token = user.brokerDetail.dailyAccessToken;
-
-    if (!access_token) {
-      return res.status(400).json("No access token found");
-    }
-
-    const orderId = await orders.limitOrderNFO(
-      tradingsymbol,
-      transaction_type,
-      exchange,
-      quantity,
-      price,
-      api_key,
-      access_token
-    );
-
-    if (!orderId) {
-      return res.status(400).json("Order Id not generated. Error in data.");
-    } else {
-      console.log("orderId is " + orderId);
-      const orderStatus = await orders.orderCheckingHandler(
-        orderId,
+      const orderId = await orders.limitOrderNFO(
+        tradingsymbol,
+        transaction_type,
+        exchange,
+        quantity,
+        price,
         api_key,
         access_token
       );
-      console.log(orderStatus);
-      const time = new Date();
-      const newLog = new Log({
-        orderId,
-        orderStatus,
-        tradingsymbol,
-        time,
-        price,
-        transaction_type,
-        userId,
-      });
-      res.status(200).json({ newLog });
+      if (!orderId) {
+        return res.status(400).json("Order Id not generated. Error in data.");
+      } else {
+        console.log("orderId is " + orderId);
+        const orderStatus = await orders.orderCheckingHandler(
+          orderId,
+          api_key,
+          access_token
+        );
+        console.log(orderStatus);
+        const time = new Date();
+        const newLog = new Log({
+          orderId,
+          orderStatus,
+          tradingsymbol,
+          time,
+          price,
+          transaction_type,
+          userId: foundUser._id,
+        });
+        res.status(200).json({ newLog });
+      }
+      await newLog.save();
     }
-    await newLog.save();
   } catch (error) {
     console.log(error);
   }
