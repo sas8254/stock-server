@@ -324,7 +324,7 @@ exports.getPositions = async (req, res) => {
     });
     console.log(response.data.data);
     if (response) {
-      res.status(200).json({ response: JSON.stringify(response.data.data) });
+      res.status(200).json({ response: response.data.data });
     }
   } catch (error) {
     console.log(error);
