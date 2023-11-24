@@ -36,7 +36,7 @@ router.post(
 router.get(
   "/get-positions/:id",
   authMiddleware.isAdmin,
-  orderController.getPositions
+  orderController.getPositionsAPI
 );
 
 

@@ -183,3 +183,26 @@ exports.orderCheckingHandler = (order_id, api_key, access_token) => {
     }, 62000);
   });
 };
+
+exports.getPositions = async (api_key, access_token) => {
+  const newInstance = instance();
+
+  try {
+    const response = await newInstance.get("/portfolio/positions", {
+      headers: {
+        "X-Kite-Version": process.env.KITE_VERSION,
+        Authorization: `token ${api_key}:${access_token}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+    if (response) {
+      return response.data.data;
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "An error occurred",
+      error,
+    });
+  }
+};
