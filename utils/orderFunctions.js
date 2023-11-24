@@ -1,3 +1,12 @@
+const axios = require("axios");
+require("dotenv").config();
+
+const instance = () => {
+  return axios.create({
+    baseURL: `${process.env.KITE_URL}`,
+  });
+};
+
 exports.limitOrderNSE = async (
   tradingsymbol,
   transaction_type,

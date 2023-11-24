@@ -4,7 +4,7 @@ const Log = require("../models/logs");
 const User = require("../models/user");
 const Stock = require("../models/stock");
 const axios = require("axios");
-const { default: mongoose } = require("mongoose");
+
 
 const instance = () => {
   return axios.create({
