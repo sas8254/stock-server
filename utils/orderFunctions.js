@@ -132,7 +132,7 @@ exports.limitOrderMCX = async (
   }
 };
 
-exports.orderHistoryThroughApi = async (api_key, access_token, id) => {
+const orderHistoryThroughApi = async (api_key, access_token, id) => {
   const newInstance = instance();
 
   try {
