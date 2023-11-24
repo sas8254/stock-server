@@ -8,5 +8,6 @@ router.patch("/change-password/:Id",authMiddleware.isUser, userController.change
 router.post("/gen-session", authMiddleware.isUser, userController.genSession);
 router.post("/sign-up", userController.signUp);
 router.patch("/edit-self/", authMiddleware.isUser, userController.editSelf);
+router.get("/get-user-count", userController.getUserCount);
 
 module.exports = router;

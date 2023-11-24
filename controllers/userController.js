@@ -166,3 +166,13 @@ exports.editSelf = async (req, res) => {
     });
   }
 };
+
+module.exports.getUserCount = async (req, res) => {
+  try {
+    const userCount = await User.countDocuments();
+    res.status(200).json({ userCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
