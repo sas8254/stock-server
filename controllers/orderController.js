@@ -5,7 +5,6 @@ const User = require("../models/user");
 const Stock = require("../models/stock");
 const axios = require("axios");
 
-
 const instance = () => {
   return axios.create({
     baseURL: `${process.env.KITE_URL}`,
@@ -61,9 +60,9 @@ exports.placeLimtOrderNSE = async (req, res) => {
         transaction_type,
         userId,
       });
+      await newLog.save();
       res.status(200).json({ newLog });
     }
-    await newLog.save();
   } catch (error) {
     console.log(error);
   }
@@ -118,9 +117,10 @@ exports.placeLimtOrderNSE = async (req, res) => {
 //         transaction_type,
 //         userId,
 //       });
+// await newLog.save();
 //       res.status(200).json({ newLog });
 //     }
-//     await newLog.save();
+//
 //   } catch (error) {
 //     console.log(error);
 //   }
@@ -175,9 +175,9 @@ exports.placeLimtOrderNFO = async (req, res) => {
         transaction_type,
         userId,
       });
+      await newLog.save();
       res.status(200).json({ newLog });
     }
-    await newLog.save();
   } catch (error) {
     console.log(error);
   }
@@ -241,9 +241,9 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
           transaction_type,
           userId: foundUser._id,
         });
+        await newLog.save();
         res.status(200).json({ newLog });
       }
-      await newLog.save();
     }
   } catch (error) {
     console.log(error);
@@ -299,9 +299,9 @@ exports.placeLimtOrderMCX = async (req, res) => {
         transaction_type,
         userId,
       });
+      await newLog.save();
       res.status(200).json({ newLog });
     }
-    await newLog.save();
   } catch (error) {
     console.log(error);
   }
