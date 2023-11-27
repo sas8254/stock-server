@@ -4,6 +4,12 @@ const authMiddleware = require("../utils/authMiddleware");
 
 const router = express.Router();
 
+router.get(
+  "/get-latest-close",
+  authMiddleware.isAdmin,
+  orderController.getLatestClose
+);
+
 router.post(
   "/place-order-NSE",
   authMiddleware.isAdmin,

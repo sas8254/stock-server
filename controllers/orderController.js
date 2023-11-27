@@ -3,7 +3,7 @@ require("dotenv").config();
 const Log = require("../models/logs");
 const User = require("../models/user");
 const Stock = require("../models/stock");
-const axios = require("axios");
+const apiCenter = require("../utils/apiCenter");
 
 exports.placeLimtOrderNSE = async (req, res) => {
   try {
@@ -333,6 +333,23 @@ exports.getPositionsAPI = async (req, res) => {
     if (response) {
       res.status(200).json({ response });
     }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "An error occurred",
+      error,
+    });
+  }
+};
+
+exports.getLatestClose = async (req, res) => {
+  try {
+    const inst_token = req.query.inst_token;
+    if (!inst_token) {
+      return res.status(400).json("Inst_token reqired");
+    }
+    const price = await apiCenter.getLatestClose(inst_token);
+    res.status(200).json(price);
   } catch (error) {
     console.log(error);
     res.status(500).json({

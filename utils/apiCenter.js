@@ -52,8 +52,15 @@ const getHoursMain = async (inst_token) => {
   return response;
 };
 
+const getLatestClose = async (inst_token) => {
+  const response = await getCandleData(inst_token, "minute");
+  const price = response.slice(-1)[0][4];
+  return price;
+};
+
 module.exports = {
   getCandleData,
   getMinutesMain,
   getHoursMain,
+  getLatestClose,
 };
