@@ -185,7 +185,12 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
     const tradingsymbol = stock.brokerDetail.tradingSymbol;
 
     const allUsers = await User.find({
-      "stockDetail.stockId": stockId,
+      stockDetail: {
+        $elemMatch: {
+          stockId: stockId,
+          isActive: true,
+        },
+      },
     }).lean();
 
     let responses = [];
