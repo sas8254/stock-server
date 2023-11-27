@@ -9,6 +9,17 @@ router.get(
   authMiddleware.isAdmin,
   orderController.getLatestClose
 );
+router.get(
+  "/get-instruments",
+  authMiddleware.isAdmin,
+  orderController.getInstruments
+);
+
+router.get(
+  "/get-positions/:id",
+  authMiddleware.isAdmin,
+  orderController.getPositionsAPI
+);
 
 router.post(
   "/place-order-NSE",
@@ -39,11 +50,7 @@ router.post(
   orderController.placeLimtOrderNFOForAll
 );
 
-router.get(
-  "/get-positions/:id",
-  authMiddleware.isAdmin,
-  orderController.getPositionsAPI
-);
+
 
 
 module.exports = router;

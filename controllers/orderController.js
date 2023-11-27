@@ -1,9 +1,9 @@
+const apiCenter = require("../utils/apiCenter");
 const orderFunctions = require("../utils/orderFunctions");
 require("dotenv").config();
 const Log = require("../models/logs");
 const User = require("../models/user");
 const Stock = require("../models/stock");
-const apiCenter = require("../utils/apiCenter");
 
 exports.placeLimtOrderNSE = async (req, res) => {
   try {
@@ -38,7 +38,7 @@ exports.placeLimtOrderNSE = async (req, res) => {
       return res.status(400).json("Order Id not generated. Error in data.");
     } else {
       console.log("orderId is " + orderId);
-      const orderStatus = await orderFunctions.orderCheckingHandler(
+      const orderStatus = await apiCenter.orderCheckingHandler(
         orderId,
         api_key,
         access_token
@@ -95,7 +95,7 @@ exports.placeLimtOrderNSE = async (req, res) => {
 //       return res.status(400).json("Order Id not generated. Error in data.");
 //     } else {
 //       console.log("orderId is " + orderId);
-//       const orderStatus = await orderFunctions.orderCheckingHandler(
+//       const orderStatus = await apiCenter.orderCheckingHandler(
 //         orderId,
 //         api_key,
 //         access_token
@@ -153,7 +153,7 @@ exports.placeLimtOrderNFO = async (req, res) => {
       return res.status(400).json("Order Id not generated. Error in data.");
     } else {
       console.log("orderId is " + orderId);
-      const orderStatus = await orderFunctions.orderCheckingHandler(
+      const orderStatus = await apiCenter.orderCheckingHandler(
         orderId,
         api_key,
         access_token
@@ -197,7 +197,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
       });
       return { ...user, stockDetail: specificStock };
     });
-
+    return res.json(users);
     for (let user of users) {
       promises.push(
         new Promise(async (resolve, reject) => {
@@ -207,9 +207,9 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
           const qty = foundUser.stockDetail[0].quantity;
           const lotSize = stock.brokerDetail.lotSize;
           const quantity = qty * lotSize;
-          // console.log(quantity);
-          // resolve();
-          // return;
+          console.log(quantity);
+          resolve();
+          return;
 
           if (!access_token) {
             responses.push({
@@ -236,7 +236,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
             });
           } else {
             console.log("orderId is " + orderId);
-            const orderStatus = await orderFunctions.orderCheckingHandler(
+            const orderStatus = await apiCenter.orderCheckingHandler(
               orderId,
               api_key,
               access_token
@@ -300,7 +300,7 @@ exports.placeLimtOrderMCX = async (req, res) => {
       return res.status(400).json("Order Id not generated. Error in data.");
     } else {
       console.log("orderId is " + orderId);
-      const orderStatus = await orderFunctions.orderCheckingHandler(
+      const orderStatus = await apiCenter.orderCheckingHandler(
         orderId,
         api_key,
         access_token
@@ -329,7 +329,7 @@ exports.getPositionsAPI = async (req, res) => {
     const user = await User.findById(req.params.id);
     const api_key = user.brokerDetail.apiKey;
     const access_token = user.brokerDetail.dailyAccessToken;
-    const response = await orderFunctions.getPositions(api_key, access_token);
+    const response = await apiCenter.getPositions(api_key, access_token);
     if (response) {
       res.status(200).json({ response });
     }
@@ -350,6 +350,19 @@ exports.getLatestClose = async (req, res) => {
     }
     const price = await apiCenter.getLatestClose(inst_token);
     res.status(200).json(price);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "An error occurred",
+      error,
+    });
+  }
+};
+
+exports.getInstruments = async (req, res) => {
+  try {
+    const instruments = await apiCenter.getInstruments();
+    res.status(200).json(instruments);
   } catch (error) {
     console.log(error);
     res.status(500).json({

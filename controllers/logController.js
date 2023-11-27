@@ -41,15 +41,14 @@ exports.getLogs = async (req, res) => {
   try {
     const { userId, startDate, endDate } = req.query;
     if (!userId || !startDate || !endDate) {
-      return res
-        .status(400)
-        .json({ message: "userId, startDate and endDate are required" });
+      const allLogs = await Log.find({});
+      return res.status(200).json({ allLogs });
     }
     const start = new Date(startDate);
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999);
 
-    const log = await Log.find({
+    const logs = await Log.find({
       userId,
       time: {
         $gte: start,
@@ -57,7 +56,7 @@ exports.getLogs = async (req, res) => {
       },
     });
     res.status(200).json({
-      log,
+      logs,
     });
   } catch (error) {
     res.status(500).json({

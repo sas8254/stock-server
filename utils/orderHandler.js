@@ -1,4 +1,5 @@
 const orders = require("../utils/orderFunctions");
+const apiCenter = require("../utils/apiCenter");
 require("dotenv").config();
 const Log = require("../models/logs");
 const User = require("../models/user");
@@ -43,7 +44,7 @@ const instance = () => {
 //       return res.status(400).json("Order Id not generated. Error in data.");
 //     } else {
 //       console.log("orderId is " + orderId);
-//       const orderStatus = await orders.orderCheckingHandler(
+//       const orderStatus = await apiCenter.orderCheckingHandler(
 //         orderId,
 //         api_key,
 //         access_token
@@ -98,7 +99,7 @@ exports.placeLimtOrderNFO = async (stock, price, orderType) => {
       console.log("Order Id not generated. Error in data.");
     } else {
       console.log("orderId is " + orderId);
-      const orderStatus = await orders.orderCheckingHandler(
+      const orderStatus = await apiCenter.orderCheckingHandler(
         orderId,
         api_key,
         access_token
@@ -153,7 +154,7 @@ exports.placeLimtOrderMCX = async (stock, price, orderType) => {
       console.log("Order Id not generated. Error in data.");
     } else {
       console.log("orderId is " + orderId);
-      const orderStatus = await orders.orderCheckingHandler(
+      const orderStatus = await apiCenter.orderCheckingHandler(
         orderId,
         api_key,
         access_token
@@ -176,8 +177,6 @@ exports.placeLimtOrderMCX = async (stock, price, orderType) => {
     console.log(error);
   }
 };
-
-// exports.getPositions = async (req, res) => {
 //   const newInstance = instance();
 
 //   try {
