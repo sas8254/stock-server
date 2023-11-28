@@ -112,6 +112,11 @@ const orderCheckingHandler = (order_id, api_key, access_token) => {
 };
 
 const getPositions = async (api_key, access_token) => {
+  const instance = () => {
+    return axios.create({
+      baseURL: `${process.env.KITE_URL}`,
+    });
+  };
   const newInstance = instance();
 
   try {
@@ -123,14 +128,11 @@ const getPositions = async (api_key, access_token) => {
       },
     });
     if (response) {
+      console.log(response.data.data.net[0].quantity);
       return response.data.data;
     }
   } catch (error) {
     console.log(error);
-    res.status(500).json({
-      message: "An error occurred",
-      error,
-    });
   }
 };
 

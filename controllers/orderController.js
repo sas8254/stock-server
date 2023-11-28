@@ -202,7 +202,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
       });
       return { ...user, stockDetail: specificStock };
     });
-    return res.json(users);
+
     for (let user of users) {
       promises.push(
         new Promise(async (resolve, reject) => {
