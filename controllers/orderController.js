@@ -306,7 +306,10 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
       const lotSize = stock.brokerDetail.lotSize;
       const quantity = qty * lotSize;
       console.log(quantity);
-      const oldQuantity = await apiCenter.getPositions(user.brokerDetail.apiKey, user.brokerDetail.dailyAccessToken);
+      const oldQuantity = await apiCenter.getPositions(
+        user.brokerDetail.apiKey,
+        user.brokerDetail.dailyAccessToken
+      );
 
       if (!access_token) {
         responses.push({
@@ -349,32 +352,41 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
           userId: foundUser._id,
         });
         await newLog.save();
-        if (orderStatus === 'COMPLETE') {
-          if (transaction_type === 'BUY' && oldQuantity < 0) {
+        if (orderStatus === "COMPLETE") {
+          if (transaction_type === "BUY" && oldQuantity < 0) {
+            quantity = Math.abs(oldQuantity);
             await limitOrderNFO(
               tradingsymbol,
               transaction_type,
               exchange,
-              -oldQuantity,
+              quantity,
               price,
-              user.brokerDetail.apiKey,
-              user.brokerDetail.dailyAccessToken
+              api_key,
+              access_token
             );
-          } else if (transaction_type === 'SELL' && oldQuantity > 0) {
+          } else if (transaction_type === "SELL" && oldQuantity > 0) {
+            quantity = Math.abs(oldQuantity);
             await limitOrderNFO(
-              stock.brokerDetail.tradingSymbol,
-              'SELL',
-              stock.brokerDetail.exchange,
-              oldQuantity,
+              tradingsymbol,
+              transaction_type,
+              exchange,
+              quantity,
               price,
-              user.brokerDetail.apiKey,
-              user.brokerDetail.dailyAccessToken
+              api_key,
+              access_token
             );
           }
         }
+        responses.push({
+          userId: user._id,
+          orderId,
+          orderStatus,
+        });
+        promises.push(orderStatus);
       }
     }
-    
+    await Promise.allSettled(promises);
+    return responses;
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.toString() });

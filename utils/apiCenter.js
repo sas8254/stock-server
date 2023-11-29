@@ -127,7 +127,7 @@ const getPositions = async (api_key, access_token) => {
       },
     });
     if (response) {
-      console.log(response.data.data.net[0].quantity);
+      console.log(response?.data?.data?.net[0]?.quantity);
       return response.data.data;
     }
   } catch (error) {
