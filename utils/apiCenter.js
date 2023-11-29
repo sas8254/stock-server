@@ -4,9 +4,15 @@ const mailer = require("./mailer");
 const User = require("../models/user");
 const KiteConnect = require("kiteconnect").KiteConnect;
 
-const instance = () => {
+const zerodhaInstance = () => {
   return axios.create({
     baseURL: `${process.env.ZERODHA_URL}`,
+  });
+};
+
+const kiteInstance = () => {
+  return axios.create({
+    baseURL: `${process.env.KITE_URL}`,
   });
 };
 
@@ -20,7 +26,7 @@ const getCandleData = async (instruments_token, interval) => {
   formDateForMinute = formDateForMinute.toISOString().split("T")[0];
   toDate = new Date().toISOString().split("T")[0];
 
-  const newInstance = instance();
+  const newInstance = zerodhaInstance();
   try {
     const user = await User.findOne({ name: "admin" });
     let enc_token = user.brokerDetail.enctoken;
@@ -60,7 +66,7 @@ const getLatestClose = async (inst_token) => {
 };
 
 const orderHistoryThroughApi = async (api_key, access_token, id) => {
-  const newInstance = instance();
+  const newInstance = kiteInstance();
 
   try {
     // console.log(access_token);
@@ -86,8 +92,8 @@ const orderCheckingHandler = (order_id, api_key, access_token) => {
     const orderChecking = setInterval(() => {
       orderHistoryThroughApi(api_key, access_token, order_id)
         .then((res) => {
-          // console.log(res)
-          const status = res.slice(-1)[0].status;
+          console.log(res);
+          const status = res?.slice(-1)[0]?.status;
           console.log(status);
           if (
             status === "COMPLETE" ||
@@ -111,12 +117,7 @@ const orderCheckingHandler = (order_id, api_key, access_token) => {
 };
 
 const getPositions = async (api_key, access_token) => {
-  const instance = () => {
-    return axios.create({
-      baseURL: `${process.env.KITE_URL}`,
-    });
-  };
-  const newInstance = instance();
+  const newInstance = kiteInstance();
 
   try {
     const response = await newInstance.get("/portfolio/positions", {
@@ -127,7 +128,7 @@ const getPositions = async (api_key, access_token) => {
       },
     });
     if (response) {
-      console.log(response?.data?.data?.net[0]?.quantity);
+      // console.log(response?.data?.data?.net[0]?.quantity);
       return response.data.data;
     }
   } catch (error) {

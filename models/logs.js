@@ -8,7 +8,6 @@ const logSchema = new mongoose.Schema({
   orderStatus: {
     type: String,
     required: true,
-    enum: ["COMPLETED", "REJECTED", "CANCELLED", "UNRESOLVED"],
   },
   tradingsymbol: {
     type: String,

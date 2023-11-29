@@ -304,7 +304,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
       const access_token = foundUser.brokerDetail.dailyAccessToken;
       const qty = foundUser.stockDetail[0].quantity;
       const lotSize = stock.brokerDetail.lotSize;
-      const quantity = qty * lotSize;
+      let quantity = qty * lotSize;
       console.log(quantity);
       const oldQuantity = await apiCenter.getPositions(
         user.brokerDetail.apiKey,
@@ -354,7 +354,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
         await newLog.save();
         if (orderStatus === "COMPLETE") {
           if (transaction_type === "BUY" && oldQuantity < 0) {
-            quantity = Math.abs(oldQuantity);
+            let quantity = Math.abs(oldQuantity);
             await limitOrderNFO(
               tradingsymbol,
               transaction_type,
@@ -365,7 +365,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
               access_token
             );
           } else if (transaction_type === "SELL" && oldQuantity > 0) {
-            quantity = Math.abs(oldQuantity);
+            let quantity = Math.abs(oldQuantity);
             await limitOrderNFO(
               tradingsymbol,
               transaction_type,
