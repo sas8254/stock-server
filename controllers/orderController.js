@@ -366,7 +366,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
             );
           } else if (transaction_type === "SELL" && oldQuantity > 0) {
             let quantity = Math.abs(oldQuantity);
-            await limitOrderNFO(
+            const squareOffOrderId = await limitOrderNFO(
               tradingsymbol,
               transaction_type,
               exchange,
@@ -455,6 +455,11 @@ exports.getPositionsAPI = async (req, res) => {
     const user = await User.findById(req.params.id);
     const api_key = user.brokerDetail.apiKey;
     const access_token = user.brokerDetail.dailyAccessToken;
+    if (!api_key || !access_token) {
+      res.status(500).json({
+        message: "api_key or accessToken is missing.",
+      });
+    }
     const response = await apiCenter.getPositions(api_key, access_token);
     if (response) {
       res.status(200).json({ response });
@@ -475,7 +480,7 @@ exports.getLatestClose = async (req, res) => {
       return res.status(400).json("Inst_token reqired");
     }
     const price = await apiCenter.getLatestClose(inst_token);
-    res.status(200).json(price);
+    res.status(200).json({ price });
   } catch (error) {
     console.log(error);
     res.status(500).json({
