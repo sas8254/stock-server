@@ -305,6 +305,8 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
       return { ...user, stockDetail: specificStock };
     });
 
+    // return res.send(users);
+
     let responses = [];
     let promises = [];
 
@@ -317,8 +319,12 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
       let quantity = qty * lotSize;
       console.log(quantity);
 
-      const oldQuantity = await getQuantity(tradingsymbol);
-      console.log(oldQuantity);
+      const oldQuantity = await getQuantity(
+        tradingsymbol,
+        api_key,
+        access_token
+      );
+      console.log(oldQuantity, user.name, "****************************");
       resolve();
       return;
 
@@ -517,7 +523,7 @@ exports.getPositionsAPI = async (req, res) => {
     const api_key = user.brokerDetail.apiKey;
     const access_token = user.brokerDetail.dailyAccessToken;
     if (!api_key || !access_token) {
-      res.status(500).json({
+      return res.status(500).json({
         message: "api_key or accessToken is missing.",
       });
     }
