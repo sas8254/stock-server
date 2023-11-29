@@ -87,15 +87,14 @@ const orderCheckingHandler = (order_id, api_key, access_token) => {
       orderHistoryThroughApi(api_key, access_token, order_id)
         .then((res) => {
           // console.log(res)
-          console.log(res.slice(-1)[0].status + "line no 94");
-          if (res.slice(-1)[0].status === "COMPLETE") {
-            resolve(true);
-            clearInterval(orderChecking);
-          } else if (
-            res.slice(-1)[0].status === "CANCELLED" ||
-            res.slice(-1)[0].status === "REJECTED"
+          const status = res.slice(-1)[0].status;
+          console.log(status);
+          if (
+            status === "COMPLETE" ||
+            status === "CANCELLED" ||
+            status === "REJECTED"
           ) {
-            resolve(false);
+            resolve(status);
             clearInterval(orderChecking);
           }
         })
@@ -106,8 +105,8 @@ const orderCheckingHandler = (order_id, api_key, access_token) => {
 
     setTimeout(() => {
       clearInterval(orderChecking);
-      resolve(false);
-    }, 62000);
+      resolve("UNRESOLVED");
+    }, 65000);
   });
 };
 

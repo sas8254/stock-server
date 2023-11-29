@@ -2,7 +2,7 @@ const User = require("./models/User");
 const Stock = require("./models/Stock");
 const Log = require("./models/Log");
 
-exports.handleStockTransaction = async (stockId, orderType) => {
+exports.handleStockTransaction = async (stockId, price, transactionType) => {
   try {
     // Fetch the stock details
     const stock = await Stock.findById(stockId);
@@ -13,8 +13,9 @@ exports.handleStockTransaction = async (stockId, orderType) => {
     // Fetch all users who have this stock in their stockDetail
     const users = await User.find({ "stockDetail.stockId": stockId });
 
-    // Array to keep track of promises
+    // Array to keep track of promises and responses
     let promises = [];
+    let responses = [];
 
     for (let user of users) {
       // Get the user's stock detail for this stock
@@ -34,10 +35,10 @@ exports.handleStockTransaction = async (stockId, orderType) => {
       // Place the order
       const orderId = await limitOrderNFO(
         stock.brokerDetail.tradingSymbol,
-        orderType,
+        transactionType,
         stock.brokerDetail.exchange,
         quantity,
-        stock.brokerDetail.price,
+        price,
         user.brokerDetail.apiKey,
         user.brokerDetail.dailyAccessToken
       );
@@ -47,57 +48,57 @@ exports.handleStockTransaction = async (stockId, orderType) => {
         orderId,
         user.brokerDetail.apiKey,
         user.brokerDetail.dailyAccessToken
-      ).then(async (isSuccessful) => {
-        if (isSuccessful) {
-          // Save the log
-          const log = new Log({
-            orderId,
-            orderStatus: "COMPLETE",
-            tradingsymbol: stock.brokerDetail.tradingSymbol,
-            time: new Date(),
-            price: stock.brokerDetail.price,
-            transaction_type: orderType,
-            userId: user._id,
-          });
-          await log.save();
+      ).then(async (status) => {
+        // Save the log
+        const log = new Log({
+          orderId,
+          orderStatus: status,
+          tradingsymbol: stock.brokerDetail.tradingSymbol,
+          time: new Date(),
+          price: price,
+          transaction_type: transactionType,
+          userId: user._id,
+        });
+        await log.save();
 
-          // Square off if necessary
-          if (orderType === "BUY" && oldQuantity < 0) {
+        // Square off if necessary
+        if (status === "COMPLETE") {
+          if (transactionType === "BUY" && oldQuantity < 0) {
             await limitOrderNFO(
               stock.brokerDetail.tradingSymbol,
               "BUY",
               stock.brokerDetail.exchange,
               -oldQuantity,
-              stock.brokerDetail.price,
+              price,
               user.brokerDetail.apiKey,
               user.brokerDetail.dailyAccessToken
             );
-          } else if (orderType === "SELL" && oldQuantity > 0) {
+          } else if (transactionType === "SELL" && oldQuantity > 0) {
             await limitOrderNFO(
               stock.brokerDetail.tradingSymbol,
               "SELL",
               stock.brokerDetail.exchange,
               oldQuantity,
-              stock.brokerDetail.price,
+              price,
               user.brokerDetail.apiKey,
               user.brokerDetail.dailyAccessToken
             );
           }
         }
 
-        // Return the response
-        return {
+        // Push the response
+        responses.push({
           userId: user._id,
           orderId,
-          isSuccessful,
-        };
+          status,
+        });
       });
 
       promises.push(promise);
     }
 
     // Wait for all promises to settle
-    const responses = await Promise.allSettled(promises);
+    await Promise.allSettled(promises);
 
     // Return the responses
     return responses;

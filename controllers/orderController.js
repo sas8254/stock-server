@@ -177,6 +177,101 @@ exports.placeLimtOrderNFO = async (req, res) => {
   }
 };
 
+// exports.placeLimtOrderNFOForAll = async (req, res) => {
+//   try {
+//     const { transaction_type, stockId, price } = req.body;
+//     const stock = await Stock.findById(stockId);
+//     const exchange = stock.brokerDetail.exchange;
+//     const tradingsymbol = stock.brokerDetail.tradingSymbol;
+
+//     const allUsers = await User.find({
+//       stockDetail: {
+//         $elemMatch: {
+//           stockId: stockId,
+//           isActive: true,
+//         },
+//       },
+//     }).lean();
+
+//     let responses = [];
+//     let promises = [];
+
+//     const users = allUsers.map((user) => {
+//       const specificStock = user.stockDetail.find((stock) => {
+//         return stock.stockId.toString() === stockId;
+//       });
+//       return { ...user, stockDetail: specificStock };
+//     });
+
+//     for (let user of users) {
+//       promises.push(
+//         new Promise(async (resolve, reject) => {
+//           const foundUser = await User.findById(user._id);
+//           const api_key = foundUser.brokerDetail.apiKey;
+//           const access_token = foundUser.brokerDetail.dailyAccessToken;
+//           const qty = foundUser.stockDetail[0].quantity;
+//           const lotSize = stock.brokerDetail.lotSize;
+//           const quantity = qty * lotSize;
+//           console.log(quantity);
+//           resolve();
+//           return;
+
+//           if (!access_token) {
+//             responses.push({
+//               userId: user._id,
+//               error: "No access token found",
+//             });
+//             resolve();
+//             return;
+//           }
+
+//           const orderId = await orderFunctions.limitOrderNFO(
+//             tradingsymbol,
+//             transaction_type,
+//             exchange,
+//             quantity,
+//             price,
+//             api_key,
+//             access_token
+//           );
+//           if (!orderId) {
+//             responses.push({
+//               userId: user._id,
+//               error: "Order Id not generated. Error in data.",
+//             });
+//           } else {
+//             console.log("orderId is " + orderId);
+//             const orderStatus = await apiCenter.orderCheckingHandler(
+//               orderId,
+//               api_key,
+//               access_token
+//             );
+//             console.log(orderStatus);
+//             const time = new Date();
+//             const newLog = new Log({
+//               orderId,
+//               orderStatus,
+//               tradingsymbol,
+//               time,
+//               price,
+//               transaction_type,
+//               userId: foundUser._id,
+//             });
+//             await newLog.save();
+//             responses.push({ userId: user._id, newLog });
+//           }
+//           resolve();
+//         })
+//       );
+//     }
+//     await Promise.all(promises);
+//     res.status(200).json(responses);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ error: error.toString() });
+//   }
+// };
+
 exports.placeLimtOrderNFOForAll = async (req, res) => {
   try {
     const { transaction_type, stockId, price } = req.body;
@@ -193,9 +288,6 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
       },
     }).lean();
 
-    let responses = [];
-    let promises = [];
-
     const users = allUsers.map((user) => {
       const specificStock = user.stockDetail.find((stock) => {
         return stock.stockId.toString() === stockId;
@@ -203,69 +295,86 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
       return { ...user, stockDetail: specificStock };
     });
 
+    let responses = [];
+    let promises = [];
+
     for (let user of users) {
-      promises.push(
-        new Promise(async (resolve, reject) => {
-          const foundUser = await User.findById(user._id);
-          const api_key = foundUser.brokerDetail.apiKey;
-          const access_token = foundUser.brokerDetail.dailyAccessToken;
-          const qty = foundUser.stockDetail[0].quantity;
-          const lotSize = stock.brokerDetail.lotSize;
-          const quantity = qty * lotSize;
-          console.log(quantity);
-          resolve();
-          return;
+      const foundUser = await User.findById(user._id);
+      const api_key = foundUser.brokerDetail.apiKey;
+      const access_token = foundUser.brokerDetail.dailyAccessToken;
+      const qty = foundUser.stockDetail[0].quantity;
+      const lotSize = stock.brokerDetail.lotSize;
+      const quantity = qty * lotSize;
+      console.log(quantity);
+      const oldQuantity = await apiCenter.getPositions(user.brokerDetail.apiKey, user.brokerDetail.dailyAccessToken);
 
-          if (!access_token) {
-            responses.push({
-              userId: user._id,
-              error: "No access token found",
-            });
-            resolve();
-            return;
-          }
+      if (!access_token) {
+        responses.push({
+          userId: user._id,
+          error: "No access token found",
+        });
+        return;
+      }
 
-          const orderId = await orderFunctions.limitOrderNFO(
-            tradingsymbol,
-            transaction_type,
-            exchange,
-            quantity,
-            price,
-            api_key,
-            access_token
-          );
-          if (!orderId) {
-            responses.push({
-              userId: user._id,
-              error: "Order Id not generated. Error in data.",
-            });
-          } else {
-            console.log("orderId is " + orderId);
-            const orderStatus = await apiCenter.orderCheckingHandler(
-              orderId,
-              api_key,
-              access_token
-            );
-            console.log(orderStatus);
-            const time = new Date();
-            const newLog = new Log({
-              orderId,
-              orderStatus,
-              tradingsymbol,
-              time,
-              price,
-              transaction_type,
-              userId: foundUser._id,
-            });
-            await newLog.save();
-            responses.push({ userId: user._id, newLog });
-          }
-          resolve();
-        })
+      const orderId = await orderFunctions.limitOrderNFO(
+        tradingsymbol,
+        transaction_type,
+        exchange,
+        quantity,
+        price,
+        api_key,
+        access_token
       );
+      if (!orderId) {
+        responses.push({
+          userId: user._id,
+          error: "Order Id not generated. Error in data.",
+        });
+      } else {
+        console.log("orderId is " + orderId);
+        const orderStatus = await apiCenter.orderCheckingHandler(
+          orderId,
+          api_key,
+          access_token
+        );
+        console.log(orderStatus);
+        const time = new Date();
+        const newLog = new Log({
+          orderId,
+          orderStatus,
+          tradingsymbol,
+          time,
+          price,
+          transaction_type,
+          userId: foundUser._id,
+        });
+        await newLog.save();
+        if (orderStatus === 'COMPLETE') {
+          if (transaction_type === 'BUY' && oldQuantity < 0) {
+            await limitOrderNFO(
+              tradingsymbol,
+              transaction_type,
+              exchange,
+              -oldQuantity,
+              price,
+              user.brokerDetail.apiKey,
+              user.brokerDetail.dailyAccessToken
+            );
+          } else if (transaction_type === 'SELL' && oldQuantity > 0) {
+            await limitOrderNFO(
+              stock.brokerDetail.tradingSymbol,
+              'SELL',
+              stock.brokerDetail.exchange,
+              oldQuantity,
+              price,
+              user.brokerDetail.apiKey,
+              user.brokerDetail.dailyAccessToken
+            );
+          }
+        }
+      }
     }
-    await Promise.all(promises);
-    res.status(200).json(responses);
+    
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.toString() });
