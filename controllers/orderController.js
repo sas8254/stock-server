@@ -5,6 +5,16 @@ const Log = require("../models/logs");
 const User = require("../models/user");
 const Stock = require("../models/stock");
 
+const getQuantity = async (tradingsymbol, api_key, access_token) => {
+  const positions = await apiCenter.getPositions(api_key, access_token);
+  for (let i = 0; positions.response.net.length; i++) {
+    if (positions.response.net[i].tradingsymbol === tradingsymbol) {
+      return positions.response.net[i].quantity;
+    }
+  }
+  return 0;
+};
+
 exports.placeLimtOrderNSE = async (req, res) => {
   try {
     const {
@@ -306,10 +316,11 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
       const lotSize = stock.brokerDetail.lotSize;
       let quantity = qty * lotSize;
       console.log(quantity);
-      const oldQuantity = await apiCenter.getPositions(
-        user.brokerDetail.apiKey,
-        user.brokerDetail.dailyAccessToken
-      );
+
+      const oldQuantity = await getQuantity(tradingsymbol);
+      console.log(oldQuantity);
+      resolve();
+      return;
 
       if (!access_token) {
         responses.push({
@@ -355,7 +366,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
         if (orderStatus === "COMPLETE") {
           if (transaction_type === "BUY" && oldQuantity < 0) {
             let quantity = Math.abs(oldQuantity);
-            await limitOrderNFO(
+            const squareOffOrderId = await limitOrderNFO(
               tradingsymbol,
               transaction_type,
               exchange,
@@ -364,6 +375,31 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
               api_key,
               access_token
             );
+            if (!squareOffOrderId) {
+              responses.push({
+                userId: user._id,
+                error: "squareOffOrderId Id not generated. Error in data.",
+              });
+            } else {
+              console.log("squareOffOrderId" + squareOffOrderId);
+              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
+                squareOffOrderId,
+                api_key,
+                access_token
+              );
+              console.log(squareOffOrderStatus);
+              const time = new Date();
+              const newLog = new Log({
+                squareOffOrderId,
+                squareOffOrderStatus,
+                tradingsymbol,
+                time,
+                price,
+                transaction_type,
+                userId: foundUser._id,
+              });
+              await newLog.save();
+            }
           } else if (transaction_type === "SELL" && oldQuantity > 0) {
             let quantity = Math.abs(oldQuantity);
             const squareOffOrderId = await limitOrderNFO(
@@ -375,6 +411,31 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
               api_key,
               access_token
             );
+            if (!squareOffOrderId) {
+              responses.push({
+                userId: user._id,
+                error: "squareOffOrderId Id not generated. Error in data.",
+              });
+            } else {
+              console.log("squareOffOrderId" + squareOffOrderId);
+              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
+                squareOffOrderId,
+                api_key,
+                access_token
+              );
+              console.log(squareOffOrderStatus);
+              const time = new Date();
+              const newLog = new Log({
+                squareOffOrderId,
+                squareOffOrderStatus,
+                tradingsymbol,
+                time,
+                price,
+                transaction_type,
+                userId: foundUser._id,
+              });
+              await newLog.save();
+            }
           }
         }
         responses.push({
@@ -382,7 +443,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
           orderId,
           orderStatus,
         });
-        promises.push(orderStatus);
+        promises.push(orderStatus, squareOffOrderStatus);
       }
     }
     await Promise.allSettled(promises);
