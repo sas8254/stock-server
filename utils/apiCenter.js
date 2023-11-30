@@ -92,7 +92,7 @@ const orderCheckingHandler = (order_id, api_key, access_token) => {
     const orderChecking = setInterval(() => {
       orderHistoryThroughApi(api_key, access_token, order_id)
         .then((res) => {
-          console.log(res);
+          // console.log(res);
           const status = res?.slice(-1)[0]?.status;
           console.log(status);
           if (
@@ -132,7 +132,7 @@ const getPositions = async (api_key, access_token) => {
       return response.data.data;
     }
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     return { error: "An error occurred while getting positions" };
   }
 };
