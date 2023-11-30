@@ -74,6 +74,372 @@ exports.placeLimtOrderNSE = async (req, res) => {
   }
 };
 
+exports.placeLimtOrderNSEForAll = async (req, res) => {
+  try {
+    const { transaction_type, stockId, price } = req.body;
+    const stock = await Stock.findById(stockId);
+    const exchange = stock.brokerDetail.exchange;
+    const tradingsymbol = stock.brokerDetail.tradingSymbol;
+
+    const allUsers = await User.find({
+      stockDetail: {
+        $elemMatch: {
+          stockId: stockId,
+          isActive: true,
+        },
+      },
+    }).lean();
+
+    const users = allUsers.map((user) => {
+      const specificStock = user.stockDetail.find((stock) => {
+        return stock.stockId.toString() === stockId;
+      });
+      return { ...user, stockDetail: specificStock };
+    });
+
+    // return res.send(users);
+
+    let responses = [];
+    let promises = [];
+
+    for (let user of users) {
+      // return res.send(user);
+      // const user = await User.findById(user._id);
+      const api_key = user.brokerDetail.apiKey;
+      const access_token = user.brokerDetail.dailyAccessToken;
+      const qty = user.stockDetail.quantity;
+      const lotSize = stock.brokerDetail.lotSize;
+      let quantity = qty * lotSize;
+
+      // return res.json({ api_key, access_token, qty, lotSize, quantity });
+      const oldQuantity = await getQuantity(
+        tradingsymbol,
+        api_key,
+        access_token
+      );
+      // console.log(oldQuantity, user.name, "****************************");
+      // return res.status(200).json(oldQuantity);
+
+      if (!access_token) {
+        responses.push({
+          userId: user._id,
+          error: "No access token found",
+        });
+        return;
+      }
+
+      const orderId = await orderFunctions.limitOrderNSE(
+        tradingsymbol,
+        transaction_type,
+        exchange,
+        quantity,
+        price,
+        api_key,
+        access_token
+      );
+      if (!orderId) {
+        responses.push({
+          userId: user._id,
+          error: "Order Id not generated. Error in data.",
+        });
+      } else {
+        console.log("orderId is " + orderId);
+        const orderStatus = await apiCenter.orderCheckingHandler(
+          orderId,
+          api_key,
+          access_token
+        );
+        console.log(orderStatus);
+        const time = new Date();
+        const newLog = new Log({
+          orderId,
+          orderStatus,
+          tradingsymbol,
+          time,
+          price,
+          transaction_type,
+          userId: user._id,
+        });
+        await newLog.save();
+        if (orderStatus === "COMPLETE") {
+          if (transaction_type === "BUY" && oldQuantity < 0) {
+            console.log("this should not run ******************");
+            let quantity = Math.abs(oldQuantity);
+            const squareOffOrderId = await orderFunctions.limitOrderNSE(
+              tradingsymbol,
+              transaction_type,
+              exchange,
+              quantity,
+              price,
+              api_key,
+              access_token
+            );
+            if (!squareOffOrderId) {
+              responses.push({
+                userId: user._id,
+                error: "squareOffOrderId Id not generated. Error in data.",
+              });
+            } else {
+              console.log("squareOffOrderId" + squareOffOrderId);
+              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
+                squareOffOrderId,
+                api_key,
+                access_token
+              );
+              console.log(squareOffOrderStatus);
+              const time = new Date();
+              const newLog = new Log({
+                squareOffOrderId,
+                squareOffOrderStatus,
+                tradingsymbol,
+                time,
+                price,
+                transaction_type,
+                userId: user._id,
+              });
+              await newLog.save();
+              promises.push(squareOffOrderStatus);
+            }
+          } else if (transaction_type === "SELL" && oldQuantity > 0) {
+            console.log("this should not run ******************");
+            let quantity = Math.abs(oldQuantity);
+            const squareOffOrderId = await orderFunctions.limitOrderNSE(
+              tradingsymbol,
+              transaction_type,
+              exchange,
+              quantity,
+              price,
+              api_key,
+              access_token
+            );
+            if (!squareOffOrderId) {
+              responses.push({
+                userId: user._id,
+                error: "squareOffOrderId Id not generated. Error in data.",
+              });
+            } else {
+              console.log("squareOffOrderId" + squareOffOrderId);
+              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
+                squareOffOrderId,
+                api_key,
+                access_token
+              );
+              console.log(squareOffOrderStatus);
+              const time = new Date();
+              const newLog = new Log({
+                squareOffOrderId,
+                squareOffOrderStatus,
+                tradingsymbol,
+                time,
+                price,
+                transaction_type,
+                userId: user._id,
+              });
+              await newLog.save();
+              promises.push(squareOffOrderStatus);
+            }
+          }
+        }
+        responses.push({
+          userId: user._id,
+          orderId,
+          orderStatus,
+        });
+        promises.push(orderStatus);
+      }
+    }
+    await Promise.allSettled(promises);
+    res.status(200).json({ responses });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.toString() });
+  }
+};
+
+exports.placeLimtOrderNSEForAllParallel = async (req, res) => {
+  try {
+    const { transaction_type, stockId, price } = req.body;
+    const stock = await Stock.findById(stockId);
+    const exchange = stock.brokerDetail.exchange;
+    const tradingsymbol = stock.brokerDetail.tradingSymbol;
+
+    const allUsers = await User.find({
+      stockDetail: {
+        $elemMatch: {
+          stockId: stockId,
+          isActive: true,
+        },
+      },
+    }).lean();
+
+    const users = allUsers.map((user) => {
+      const specificStock = user.stockDetail.find((stock) => {
+        return stock.stockId.toString() === stockId;
+      });
+      return { ...user, stockDetail: specificStock };
+    });
+
+    // return res.send(users);
+
+    let responses = [];
+    let promises = [];
+
+    promises = users.map(async (user) => {
+      // return res.send(user);
+      // const user = await User.findById(user._id);
+      const api_key = user.brokerDetail.apiKey;
+      const access_token = user.brokerDetail.dailyAccessToken;
+      const qty = user.stockDetail.quantity;
+      const lotSize = stock.brokerDetail.lotSize;
+      let quantity = qty * lotSize;
+
+      // return res.json({ api_key, access_token, qty, lotSize, quantity });
+      const oldQuantity = await getQuantity(
+        tradingsymbol,
+        api_key,
+        access_token
+      );
+      // console.log(oldQuantity, user.name, "****************************");
+      // return res.status(200).json(oldQuantity);
+
+      if (!access_token) {
+        responses.push({
+          userId: user._id,
+          error: "No access token found",
+        });
+        return;
+      }
+
+      const orderId = await orderFunctions.limitOrderNSE(
+        tradingsymbol,
+        transaction_type,
+        exchange,
+        quantity,
+        price,
+        api_key,
+        access_token
+      );
+      if (!orderId) {
+        responses.push({
+          userId: user._id,
+          error: "Order Id not generated. Error in data.",
+        });
+      } else {
+        console.log("orderId is " + orderId);
+        const orderStatus = await apiCenter.orderCheckingHandler(
+          orderId,
+          api_key,
+          access_token
+        );
+        console.log(orderStatus);
+        const time = new Date();
+        const newLog = new Log({
+          orderId,
+          orderStatus,
+          tradingsymbol,
+          time,
+          price,
+          transaction_type,
+          userId: user._id,
+        });
+        await newLog.save();
+
+        if (orderStatus === "COMPLETE") {
+          if (transaction_type === "BUY" && oldQuantity < 0) {
+            console.log("this should not run ******************");
+            let quantity = Math.abs(oldQuantity);
+            const squareOffOrderId = await orderFunctions.limitOrderNSE(
+              tradingsymbol,
+              transaction_type,
+              exchange,
+              quantity,
+              price,
+              api_key,
+              access_token
+            );
+            if (!squareOffOrderId) {
+              responses.push({
+                userId: user._id,
+                error: "squareOffOrderId Id not generated. Error in data.",
+              });
+            } else {
+              console.log("squareOffOrderId" + squareOffOrderId);
+              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
+                squareOffOrderId,
+                api_key,
+                access_token
+              );
+              console.log(squareOffOrderStatus);
+              const time = new Date();
+              const newLog = new Log({
+                squareOffOrderId,
+                squareOffOrderStatus,
+                tradingsymbol,
+                time,
+                price,
+                transaction_type,
+                userId: user._id,
+              });
+              await newLog.save();
+              promises.push(squareOffOrderStatus);
+            }
+          } else if (transaction_type === "SELL" && oldQuantity > 0) {
+            console.log("this should not run ******************");
+            let quantity = Math.abs(oldQuantity);
+            const squareOffOrderId = await orderFunctions.limitOrderNSE(
+              tradingsymbol,
+              transaction_type,
+              exchange,
+              quantity,
+              price,
+              api_key,
+              access_token
+            );
+            if (!squareOffOrderId) {
+              responses.push({
+                userId: user._id,
+                error: "squareOffOrderId Id not generated. Error in data.",
+              });
+            } else {
+              console.log("squareOffOrderId" + squareOffOrderId);
+              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
+                squareOffOrderId,
+                api_key,
+                access_token
+              );
+              console.log(squareOffOrderStatus);
+              const time = new Date();
+              const newLog = new Log({
+                squareOffOrderId,
+                squareOffOrderStatus,
+                tradingsymbol,
+                time,
+                price,
+                transaction_type,
+                userId: user._id,
+              });
+              await newLog.save();
+              promises.push(squareOffOrderStatus);
+            }
+          }
+        }
+        responses.push({
+          userId: user._id,
+          orderId,
+          orderStatus,
+        });
+        return orderStatus;
+      }
+    });
+
+    await Promise.allSettled(promises);
+    res.status(200).json({ responses });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.toString() });
+  }
+};
+
 exports.placeLimtOrderNFO = async (req, res) => {
   try {
     const {
@@ -167,7 +533,6 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
       const qty = user.stockDetail.quantity;
       const lotSize = stock.brokerDetail.lotSize;
       let quantity = qty * lotSize;
-      let id = user._id;
 
       // return res.json({ api_key, access_token, qty, lotSize, quantity });
       const oldQuantity = await getQuantity(
@@ -176,7 +541,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
         access_token
       );
       console.log(oldQuantity, user.name, "****************************");
-      return res.status(200).json(oldQuantity);
+      // return res.status(200).json(oldQuantity);
 
       if (!access_token) {
         responses.push({
@@ -222,7 +587,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
         if (orderStatus === "COMPLETE") {
           if (transaction_type === "BUY" && oldQuantity < 0) {
             let quantity = Math.abs(oldQuantity);
-            const squareOffOrderId = await limitOrderNFO(
+            const squareOffOrderId = await orderFunctions.limitOrderNFO(
               tradingsymbol,
               transaction_type,
               exchange,
@@ -258,7 +623,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
             }
           } else if (transaction_type === "SELL" && oldQuantity > 0) {
             let quantity = Math.abs(oldQuantity);
-            const squareOffOrderId = await limitOrderNFO(
+            const squareOffOrderId = await orderFunctions.limitOrderNFO(
               tradingsymbol,
               transaction_type,
               exchange,
@@ -369,42 +734,27 @@ exports.placeLimtOrderMCX = async (req, res) => {
 
 exports.getPositionsAPI = async (req, res) => {
   try {
+    let user;
     if (req.user.role === "admin") {
-      const user = await User.findById(req.params.id);
-      const api_key = user.brokerDetail.apiKey;
-      const access_token = user.brokerDetail.dailyAccessToken;
-      if (!api_key || !access_token) {
-        return res.status(500).json({
-          message: "api_key or accessToken is missing.",
-        });
-      }
-      const response = await apiCenter.getPositions(api_key, access_token);
-      if (response?.error) {
-        return res.status(500).json({
-          message: response.error,
-        });
-      }
-      if (response) {
-        res.status(200).json({ response });
-      }
+      user = await User.findById(req.params.id);
     } else {
-      const user = await User.findById(req.user.id);
-      const api_key = user.brokerDetail.apiKey;
-      const access_token = user.brokerDetail.dailyAccessToken;
-      if (!api_key || !access_token) {
-        return res.status(500).json({
-          message: "api_key or accessToken is missing.",
-        });
-      }
-      const response = await apiCenter.getPositions(api_key, access_token);
-      if (response?.error) {
-        return res.status(500).json({
-          message: response.error,
-        });
-      }
-      if (response) {
-        res.status(200).json({ response });
-      }
+      user = await User.findById(req.user.id);
+    }
+    const api_key = user.brokerDetail.apiKey;
+    const access_token = user.brokerDetail.dailyAccessToken;
+    if (!api_key || !access_token) {
+      return res.status(500).json({
+        message: "api_key or accessToken is missing.",
+      });
+    }
+    const response = await apiCenter.getPositions(api_key, access_token);
+    if (response?.error) {
+      return res.status(500).json({
+        message: response.error,
+      });
+    }
+    if (response) {
+      res.status(200).json({ response });
     }
   } catch (error) {
     console.log(error);

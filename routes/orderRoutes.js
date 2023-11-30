@@ -27,11 +27,11 @@ router.post(
   orderController.placeLimtOrderNSE
 );
 
-// router.post(
-//   "/place-order-NSE-all",
-//   authMiddleware.isAdmin,
-//   orderController.placeLimtOrderNSEForAll
-// );
+router.post(
+  "/place-order-NSE-all",
+  authMiddleware.isAdmin,
+  orderController.placeLimtOrderNSEForAll
+);
 
 router.post(
   "/place-order-MCX",

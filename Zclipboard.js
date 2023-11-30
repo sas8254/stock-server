@@ -1,143 +1,369 @@
-const positions = {
-  response: {
-    net: [
-      {
-        tradingsymbol: "IOC",
-        exchange: "NSE",
-        instrument_token: 415745,
-        product: "CNC",
-        quantity: 1,
-        overnight_quantity: 0,
-        multiplier: 1,
-        average_price: 108.925,
-        close_price: 0,
-        last_price: 108.55,
-        value: -108.89999999999999,
-        pnl: -0.3499999999999943,
-        m2m: -0.3499999999999943,
-        unrealised: -0.3499999999999943,
-        realised: 0,
-        buy_quantity: 2,
-        buy_price: 108.925,
-        buy_value: 217.85,
-        buy_m2m: 217.85,
-        sell_quantity: 1,
-        sell_price: 108.95,
-        sell_value: 108.95,
-        sell_m2m: 108.95,
-        day_buy_quantity: 2,
-        day_buy_price: 108.925,
-        day_buy_value: 217.85,
-        day_sell_quantity: 1,
-        day_sell_price: 108.95,
-        day_sell_value: 108.95,
+exports.placeLimtOrderNSEForAllParalle = async (req, res) => {
+  try {
+    const { transaction_type, stockId, price } = req.body;
+    const stock = await Stock.findById(stockId);
+    const exchange = stock.brokerDetail.exchange;
+    const tradingsymbol = stock.brokerDetail.tradingSymbol;
+
+    const allUsers = await User.find({
+      stockDetail: {
+        $elemMatch: {
+          stockId: stockId,
+          isActive: true,
+        },
       },
-      {
-        tradingsymbol: "NMDC23NOVFUT",
-        exchange: "NFO",
-        instrument_token: 14871554,
-        product: "NRML",
-        quantity: 0,
-        overnight_quantity: 4500,
-        multiplier: 1,
-        average_price: 0,
-        close_price: 181.75,
-        last_price: 180.2,
-        value: -8100,
-        pnl: -8100,
-        m2m: -5625,
-        unrealised: -8100,
-        realised: 0,
-        buy_quantity: 4500,
-        buy_price: 182.3,
-        buy_value: 820350,
-        buy_m2m: 817875,
-        sell_quantity: 4500,
-        sell_price: 180.5,
-        sell_value: 812250,
-        sell_m2m: 812250,
-        day_buy_quantity: 0,
-        day_buy_price: 0,
-        day_buy_value: 0,
-        day_sell_quantity: 4500,
-        day_sell_price: 180.5,
-        day_sell_value: 812250,
-      },
-    ],
-    day: [
-      {
-        tradingsymbol: "NMDC23NOVFUT",
-        exchange: "NFO",
-        instrument_token: 14871554,
-        product: "NRML",
-        quantity: -4500,
-        overnight_quantity: 0,
-        multiplier: 1,
-        average_price: 180.5,
-        close_price: 181.75,
-        last_price: 180.2,
-        value: 812250,
-        pnl: 1350,
-        m2m: 1350,
-        unrealised: 1350,
-        realised: 0,
-        buy_quantity: 0,
-        buy_price: 0,
-        buy_value: 0,
-        buy_m2m: 0,
-        sell_quantity: 4500,
-        sell_price: 180.5,
-        sell_value: 812250,
-        sell_m2m: 812250,
-        day_buy_quantity: 0,
-        day_buy_price: 0,
-        day_buy_value: 0,
-        day_sell_quantity: 4500,
-        day_sell_price: 180.5,
-        day_sell_value: 812250,
-      },
-      {
-        tradingsymbol: "IOC",
-        exchange: "NSE",
-        instrument_token: 415745,
-        product: "CNC",
-        quantity: 1,
-        overnight_quantity: 0,
-        multiplier: 1,
-        average_price: 108.925,
-        close_price: 0,
-        last_price: 108.55,
-        value: -108.89999999999999,
-        pnl: -0.3499999999999943,
-        m2m: -0.3499999999999943,
-        unrealised: -0.3499999999999943,
-        realised: 0,
-        buy_quantity: 2,
-        buy_price: 108.925,
-        buy_value: 217.85,
-        buy_m2m: 217.85,
-        sell_quantity: 1,
-        sell_price: 108.95,
-        sell_value: 108.95,
-        sell_m2m: 108.95,
-        day_buy_quantity: 2,
-        day_buy_price: 108.925,
-        day_buy_value: 217.85,
-        day_sell_quantity: 1,
-        day_sell_price: 108.95,
-        day_sell_value: 108.95,
-      },
-    ],
-  },
+    }).lean();
+
+    const users = allUsers.map((user) => {
+      const specificStock = user.stockDetail.find((stock) => {
+        return stock.stockId.toString() === stockId;
+      });
+      return { ...user, stockDetail: specificStock };
+    });
+
+    // return res.send(users);
+
+    let responses = [];
+    let promises = [];
+
+    promises = users.map(async (user) => {
+      // return res.send(user);
+      // const user = await User.findById(user._id);
+      const api_key = user.brokerDetail.apiKey;
+      const access_token = user.brokerDetail.dailyAccessToken;
+      const qty = user.stockDetail.quantity;
+      const lotSize = stock.brokerDetail.lotSize;
+      let quantity = qty * lotSize;
+
+      // return res.json({ api_key, access_token, qty, lotSize, quantity });
+      const oldQuantity = await getQuantity(
+        tradingsymbol,
+        api_key,
+        access_token
+      );
+      // console.log(oldQuantity, user.name, "****************************");
+      // return res.status(200).json(oldQuantity);
+
+      if (!access_token) {
+        responses.push({
+          userId: user._id,
+          error: "No access token found",
+        });
+        return;
+      }
+
+      const orderId = await orderFunctions.limitOrderNSE(
+        tradingsymbol,
+        transaction_type,
+        exchange,
+        quantity,
+        price,
+        api_key,
+        access_token
+      );
+      if (!orderId) {
+        responses.push({
+          userId: user._id,
+          error: "Order Id not generated. Error in data.",
+        });
+      } else {
+        console.log("orderId is " + orderId);
+        const orderStatus = await apiCenter.orderCheckingHandler(
+          orderId,
+          api_key,
+          access_token
+        );
+        console.log(orderStatus);
+        const time = new Date();
+        const newLog = new Log({
+          orderId,
+          orderStatus,
+          tradingsymbol,
+          time,
+          price,
+          transaction_type,
+          userId: user._id,
+        });
+        await newLog.save();
+
+        if (orderStatus === "COMPLETE") {
+          if (transaction_type === "BUY" && oldQuantity < 0) {
+            console.log("this should not run ******************");
+            let quantity = Math.abs(oldQuantity);
+            const squareOffOrderId = await orderFunctions.limitOrderNSE(
+              tradingsymbol,
+              transaction_type,
+              exchange,
+              quantity,
+              price,
+              api_key,
+              access_token
+            );
+            if (!squareOffOrderId) {
+              responses.push({
+                userId: user._id,
+                error: "squareOffOrderId Id not generated. Error in data.",
+              });
+            } else {
+              console.log("squareOffOrderId" + squareOffOrderId);
+              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
+                squareOffOrderId,
+                api_key,
+                access_token
+              );
+              console.log(squareOffOrderStatus);
+              const time = new Date();
+              const newLog = new Log({
+                squareOffOrderId,
+                squareOffOrderStatus,
+                tradingsymbol,
+                time,
+                price,
+                transaction_type,
+                userId: user._id,
+              });
+              await newLog.save();
+              promises.push(squareOffOrderStatus);
+            }
+          } else if (transaction_type === "SELL" && oldQuantity > 0) {
+            console.log("this should not run ******************");
+            let quantity = Math.abs(oldQuantity);
+            const squareOffOrderId = await orderFunctions.limitOrderNSE(
+              tradingsymbol,
+              transaction_type,
+              exchange,
+              quantity,
+              price,
+              api_key,
+              access_token
+            );
+            if (!squareOffOrderId) {
+              responses.push({
+                userId: user._id,
+                error: "squareOffOrderId Id not generated. Error in data.",
+              });
+            } else {
+              console.log("squareOffOrderId" + squareOffOrderId);
+              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
+                squareOffOrderId,
+                api_key,
+                access_token
+              );
+              console.log(squareOffOrderStatus);
+              const time = new Date();
+              const newLog = new Log({
+                squareOffOrderId,
+                squareOffOrderStatus,
+                tradingsymbol,
+                time,
+                price,
+                transaction_type,
+                userId: user._id,
+              });
+              await newLog.save();
+              promises.push(squareOffOrderStatus);
+            }
+          }
+        }
+        responses.push({
+          userId: user._id,
+          orderId,
+          orderStatus,
+        });
+        return orderStatus;
+      }
+    });
+
+    await Promise.allSettled(promises);
+    res.status(200).json({ responses });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.toString() });
+  }
 };
 
-function getQuantity(tradingSymbol, positions) {
-  for (let i = 0; i < positions.response.net.length; i++) {
-    if (positions.response.net[i].tradingsymbol === tradingSymbol) {
-      return positions.response.net[i].quantity;
-    }
-  }
-  return 0;
-}
+exports.placeLimtOrderNSEForAllParallev2 = async (req, res) => {
+  try {
+    const { transaction_type, stockId, price } = req.body;
+    const stock = await Stock.findById(stockId);
+    const exchange = stock.brokerDetail.exchange;
+    const tradingsymbol = stock.brokerDetail.tradingSymbol;
 
-console.log(getQuantity("IOC", positions));
+    const allUsers = await User.find({
+      stockDetail: {
+        $elemMatch: {
+          stockId: stockId,
+          isActive: true,
+        },
+      },
+    }).lean();
+
+    const users = allUsers.map((user) => {
+      const specificStock = user.stockDetail.find((stock) => {
+        return stock.stockId.toString() === stockId;
+      });
+      return { ...user, stockDetail: specificStock };
+    });
+
+    // return res.send(users);
+
+    let responses = [];
+    let promises = [];
+    let squareOffPromises = [];
+
+    promises = users.map(async (user) => {
+      // return res.send(user);
+      // const user = await User.findById(user._id);
+      const api_key = user.brokerDetail.apiKey;
+      const access_token = user.brokerDetail.dailyAccessToken;
+      const qty = user.stockDetail.quantity;
+      const lotSize = stock.brokerDetail.lotSize;
+      let quantity = qty * lotSize;
+
+      // return res.json({ api_key, access_token, qty, lotSize, quantity });
+      const oldQuantity = await getQuantity(
+        tradingsymbol,
+        api_key,
+        access_token
+      );
+      // console.log(oldQuantity, user.name, "****************************");
+      // return res.status(200).json(oldQuantity);
+
+      if (!access_token) {
+        responses.push({
+          userId: user._id,
+          error: "No access token found",
+        });
+        return;
+      }
+
+      const orderId = await orderFunctions.limitOrderNSE(
+        tradingsymbol,
+        transaction_type,
+        exchange,
+        quantity,
+        price,
+        api_key,
+        access_token
+      );
+      if (!orderId) {
+        responses.push({
+          userId: user._id,
+          error: "Order Id not generated. Error in data.",
+        });
+      } else {
+        console.log("orderId is " + orderId);
+        const orderStatus = await apiCenter.orderCheckingHandler(
+          orderId,
+          api_key,
+          access_token
+        );
+        console.log(orderStatus);
+        const time = new Date();
+        const newLog = new Log({
+          orderId,
+          orderStatus,
+          tradingsymbol,
+          time,
+          price,
+          transaction_type,
+          userId: user._id,
+        });
+        await newLog.save();
+
+        if (orderStatus === "COMPLETE") {
+          if (transaction_type === "BUY" && oldQuantity < 0) {
+            console.log("this should not run ******************");
+            let quantity = Math.abs(oldQuantity);
+            const squareOffOrderId = await orderFunctions.limitOrderNSE(
+              tradingsymbol,
+              transaction_type,
+              exchange,
+              quantity,
+              price,
+              api_key,
+              access_token
+            );
+            if (!squareOffOrderId) {
+              responses.push({
+                userId: user._id,
+                error: "squareOffOrderId Id not generated. Error in data.",
+              });
+            } else {
+              console.log("squareOffOrderId" + squareOffOrderId);
+              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
+                squareOffOrderId,
+                api_key,
+                access_token
+              );
+              console.log(squareOffOrderStatus);
+              const time = new Date();
+              const newLog = new Log({
+                squareOffOrderId,
+                squareOffOrderStatus,
+                tradingsymbol,
+                time,
+                price,
+                transaction_type,
+                userId: user._id,
+              });
+              await newLog.save();
+              squareOffPromises.push(squareOffOrderStatus);
+            }
+          } else if (transaction_type === "SELL" && oldQuantity > 0) {
+            console.log("this should not run ******************");
+            let quantity = Math.abs(oldQuantity);
+            const squareOffOrderId = await orderFunctions.limitOrderNSE(
+              tradingsymbol,
+              transaction_type,
+              exchange,
+              quantity,
+              price,
+              api_key,
+              access_token
+            );
+            if (!squareOffOrderId) {
+              responses.push({
+                userId: user._id,
+                error: "squareOffOrderId Id not generated. Error in data.",
+              });
+            } else {
+              console.log("squareOffOrderId" + squareOffOrderId);
+              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
+                squareOffOrderId,
+                api_key,
+                access_token
+              );
+              console.log(squareOffOrderStatus);
+              const time = new Date();
+              const newLog = new Log({
+                squareOffOrderId,
+                squareOffOrderStatus,
+                tradingsymbol,
+                time,
+                price,
+                transaction_type,
+                userId: user._id,
+              });
+              await newLog.save();
+              squareOffPromises.push(squareOffOrderStatus);
+            }
+          }
+        }
+        responses.push({
+          userId: user._id,
+          orderId,
+          orderStatus,
+        });
+        return orderStatus;
+      }
+    });
+
+    await Promise.allSettled(promises);
+    await Promise.allSettled(squareOffPromises);
+    res.status(200).json({ responses });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.toString() });
+  }
+};
