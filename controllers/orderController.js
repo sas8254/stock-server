@@ -528,6 +528,11 @@ exports.getPositionsAPI = async (req, res) => {
       });
     }
     const response = await apiCenter.getPositions(api_key, access_token);
+    if (response?.error) {
+      return res.status(500).json({
+        message: response.error,
+      });
+    }
     if (response) {
       res.status(200).json({ response });
     }
