@@ -20,35 +20,24 @@ router.get(
   authMiddleware.isUser,
   orderController.getPositionsAPI
 );
-
-router.post(
-  "/place-order-NSE",
-  authMiddleware.isAdmin,
-  orderController.placeLimtOrderNSE
+router.get(
+  "/get-orders/:id",
+  authMiddleware.isUser,
+  orderController.getOrdersAPI
 );
 
 router.post(
-  "/place-order-NSE-all",
+  "/place-order",
   authMiddleware.isAdmin,
-  orderController.placeLimtOrderNSEForAll
+  orderController.placeLimtOrder
 );
 
 router.post(
-  "/place-order-MCX",
+  "/place-order-for-all",
   authMiddleware.isAdmin,
-  orderController.placeLimtOrderMCX
+  orderController.placeLimtOrderForAll
 );
 
-router.post(
-  "/place-order-NFO",
-  authMiddleware.isAdmin,
-  orderController.placeLimtOrderNFO
-);
-router.post(
-  "/place-order-NFO-all",
-  authMiddleware.isAdmin,
-  orderController.placeLimtOrderNFOForAll
-);
 
 
 
