@@ -67,7 +67,7 @@ exports.placeLimtOrderNSEForAllParalle = async (req, res) => {
           error: "Order Id not generated. Error in data.",
         });
       } else {
-        console.log("orderId is " + orderId);
+        console.log("orderId is - " + orderId + " - for user - " + user.name);
         const orderStatus = await apiCenter.orderCheckingHandler(
           orderId,
           api_key,
@@ -105,7 +105,7 @@ exports.placeLimtOrderNSEForAllParalle = async (req, res) => {
                 error: "squareOffOrderId Id not generated. Error in data.",
               });
             } else {
-              console.log("squareOffOrderId" + squareOffOrderId);
+              console.log("squareOffOrderId is - " + squareOffOrderId);
               const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
                 squareOffOrderId,
                 api_key,
@@ -143,7 +143,7 @@ exports.placeLimtOrderNSEForAllParalle = async (req, res) => {
                 error: "squareOffOrderId Id not generated. Error in data.",
               });
             } else {
-              console.log("squareOffOrderId" + squareOffOrderId);
+              console.log("squareOffOrderId is - " + squareOffOrderId);
               const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
                 squareOffOrderId,
                 api_key,
@@ -252,7 +252,7 @@ exports.placeLimtOrderNSEForAllParallev2 = async (req, res) => {
           error: "Order Id not generated. Error in data.",
         });
       } else {
-        console.log("orderId is " + orderId);
+        console.log("orderId is - " + orderId + " - for user - " + user.name);
         const orderStatus = await apiCenter.orderCheckingHandler(
           orderId,
           api_key,
@@ -290,7 +290,7 @@ exports.placeLimtOrderNSEForAllParallev2 = async (req, res) => {
                 error: "squareOffOrderId Id not generated. Error in data.",
               });
             } else {
-              console.log("squareOffOrderId" + squareOffOrderId);
+              console.log("squareOffOrderId is - " + squareOffOrderId);
               const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
                 squareOffOrderId,
                 api_key,
@@ -328,7 +328,7 @@ exports.placeLimtOrderNSEForAllParallev2 = async (req, res) => {
                 error: "squareOffOrderId Id not generated. Error in data.",
               });
             } else {
-              console.log("squareOffOrderId" + squareOffOrderId);
+              console.log("squareOffOrderId is - " + squareOffOrderId);
               const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
                 squareOffOrderId,
                 api_key,

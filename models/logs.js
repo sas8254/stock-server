@@ -14,6 +14,11 @@ const logSchema = new mongoose.Schema({
     required: true,
   },
 
+  quantity: {
+    type: Number,
+    required: true,
+  },
+
   time: {
     type: Date,
     required: true,

@@ -49,7 +49,7 @@ exports.placeLimtOrderNSE = async (req, res) => {
     if (!orderId) {
       return res.status(400).json("Order Id not generated. Error in data.");
     } else {
-      console.log("orderId is " + orderId);
+      console.log("orderId is - " + orderId + " - for user - " + user.name);
       const orderStatus = await apiCenter.orderCheckingHandler(
         orderId,
         api_key,
@@ -65,8 +65,10 @@ exports.placeLimtOrderNSE = async (req, res) => {
         price,
         transaction_type,
         userId,
+        quantity,
       });
       await newLog.save();
+      quantity;
       res.status(200).json({ newLog });
     }
   } catch (error) {
@@ -143,7 +145,7 @@ exports.placeLimtOrderNSEForAll = async (req, res) => {
           error: "Order Id not generated. Error in data.",
         });
       } else {
-        console.log("orderId is " + orderId);
+        console.log("orderId is - " + orderId + " - for user - " + user.name);
         const orderStatus = await apiCenter.orderCheckingHandler(
           orderId,
           api_key,
@@ -159,6 +161,7 @@ exports.placeLimtOrderNSEForAll = async (req, res) => {
           price,
           transaction_type,
           userId: user._id,
+          quantity,
         });
         await newLog.save();
         if (orderStatus === "COMPLETE") {
@@ -196,6 +199,7 @@ exports.placeLimtOrderNSEForAll = async (req, res) => {
                 price,
                 transaction_type,
                 userId: user._id,
+                quantity,
               });
               await newLog.save();
               promises.push(squareOffOrderStatus);
@@ -234,6 +238,7 @@ exports.placeLimtOrderNSEForAll = async (req, res) => {
                 price,
                 transaction_type,
                 userId: user._id,
+                quantity,
               });
               await newLog.save();
               promises.push(squareOffOrderStatus);
@@ -325,7 +330,7 @@ exports.placeLimtOrderNSEForAllParallel = async (req, res) => {
           error: "Order Id not generated. Error in data.",
         });
       } else {
-        console.log("orderId is " + orderId);
+        console.log("orderId is - " + orderId + " - for user - " + user.name);
         const orderStatus = await apiCenter.orderCheckingHandler(
           orderId,
           api_key,
@@ -341,6 +346,7 @@ exports.placeLimtOrderNSEForAllParallel = async (req, res) => {
           price,
           transaction_type,
           userId: user._id,
+          quantity,
         });
         await newLog.save();
 
@@ -379,6 +385,7 @@ exports.placeLimtOrderNSEForAllParallel = async (req, res) => {
                 price,
                 transaction_type,
                 userId: user._id,
+                quantity,
               });
               await newLog.save();
               promises.push(squareOffOrderStatus);
@@ -417,6 +424,7 @@ exports.placeLimtOrderNSEForAllParallel = async (req, res) => {
                 price,
                 transaction_type,
                 userId: user._id,
+                quantity,
               });
               await newLog.save();
               promises.push(squareOffOrderStatus);
@@ -472,7 +480,7 @@ exports.placeLimtOrderNFO = async (req, res) => {
     if (!orderId) {
       return res.status(400).json("Order Id not generated. Error in data.");
     } else {
-      console.log("orderId is " + orderId);
+      console.log("orderId is - " + orderId + " - for user - " + user.name);
       const orderStatus = await apiCenter.orderCheckingHandler(
         orderId,
         api_key,
@@ -488,6 +496,7 @@ exports.placeLimtOrderNFO = async (req, res) => {
         price,
         transaction_type,
         userId,
+        quantity,
       });
       await newLog.save();
       res.status(200).json({ newLog });
@@ -566,7 +575,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
           error: "Order Id not generated. Error in data.",
         });
       } else {
-        console.log("orderId is " + orderId);
+        console.log("orderId is - " + orderId + " - for user - " + user.name);
         const orderStatus = await apiCenter.orderCheckingHandler(
           orderId,
           api_key,
@@ -582,6 +591,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
           price,
           transaction_type,
           userId: user._id,
+          quantity,
         });
         await newLog.save();
         if (orderStatus === "COMPLETE") {
@@ -618,6 +628,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
                 price,
                 transaction_type,
                 userId: user._id,
+                quantity,
               });
               await newLog.save();
             }
@@ -654,6 +665,7 @@ exports.placeLimtOrderNFOForAll = async (req, res) => {
                 price,
                 transaction_type,
                 userId: user._id,
+                quantity,
               });
               await newLog.save();
             }
@@ -707,7 +719,7 @@ exports.placeLimtOrderMCX = async (req, res) => {
     if (!orderId) {
       return res.status(400).json("Order Id not generated. Error in data.");
     } else {
-      console.log("orderId is " + orderId);
+      console.log("orderId is - " + orderId + " - for user - " + user.name);
       const orderStatus = await apiCenter.orderCheckingHandler(
         orderId,
         api_key,
@@ -723,8 +735,10 @@ exports.placeLimtOrderMCX = async (req, res) => {
         price,
         transaction_type,
         userId,
+        quantity,
       });
       await newLog.save();
+      quantity;
       res.status(200).json({ newLog });
     }
   } catch (error) {
