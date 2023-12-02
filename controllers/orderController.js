@@ -204,6 +204,11 @@ exports.placeLimtOrderForAll = async (req, res) => {
                 quantity,
               });
               await newLog.save();
+              responses.push({
+                userId: user._id,
+                squareOffOrderId,
+                squareOffOrderStatus,
+              });
               squareOffPromises.push(squareOffOrderStatus);
             }
           } else if (transaction_type === "SELL" && oldQuantity > 0) {
@@ -244,6 +249,11 @@ exports.placeLimtOrderForAll = async (req, res) => {
                 quantity,
               });
               await newLog.save();
+              responses.push({
+                userId: user._id,
+                squareOffOrderId,
+                squareOffOrderStatus,
+              });
               squareOffPromises.push(squareOffOrderStatus);
             }
           }
