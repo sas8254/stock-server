@@ -68,9 +68,9 @@ exports.updateOrder = async (api_key, access_token, price, orderId) => {
       `/orders/regular/${orderId}`,
       {
         price,
-        order_type: "LIMIT",
-        validity: "TTL",
-        validity_ttl: 1,
+        // order_type: "LIMIT",
+        // validity: "TTL",
+        // validity_ttl: 1,
       },
       {
         headers: {

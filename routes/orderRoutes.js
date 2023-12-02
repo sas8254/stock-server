@@ -7,12 +7,12 @@ const router = express.Router();
 router.get(
   "/get-latest-close",
   authMiddleware.isAdmin,
-  orderController.getLatestClose
+  orderController.getLatestCloseAPI
 );
 router.get(
   "/get-instruments",
   authMiddleware.isAdmin,
-  orderController.getInstruments
+  orderController.getInstrumentsAPI
 );
 
 router.get(
@@ -37,6 +37,38 @@ router.post(
   authMiddleware.isAdmin,
   orderController.placeLimtOrderForAll
 );
+
+router.post(
+  "/give-quantity-difference",
+  authMiddleware.isAdmin,
+  orderController.giveQuantityDiff
+);
+
+router.post(
+  "/neutralise-positions",
+  authMiddleware.isAdmin,
+  orderController.neutralisePositions
+);
+
+router.post(
+  "/give-quantity-differencce",
+  authMiddleware.isAdmin,
+  orderController.giveQuantityDiff
+);
+
+router.post(
+  "/update-order",
+  authMiddleware.isAdmin,
+  orderController.updateOrderAPI
+);
+
+router.post(
+  "/delete-order",
+  authMiddleware.isAdmin,
+  orderController.deleteOrderAPI
+);
+
+
 
 
 

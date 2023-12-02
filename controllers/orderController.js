@@ -5,19 +5,6 @@ const Log = require("../models/logs");
 const User = require("../models/user");
 const Stock = require("../models/stock");
 
-const getQuantity = async (tradingsymbol, api_key, access_token) => {
-  const positions = await apiCenter.getPositions(api_key, access_token);
-  if (positions?.error) {
-    return positions;
-  }
-  for (let i = 0; i < positions.net.length; i++) {
-    if (positions.net[i].tradingsymbol === tradingsymbol) {
-      return positions.net[i].quantity;
-    }
-  }
-  return 0;
-};
-
 exports.placeLimtOrder = async (req, res) => {
   try {
     const {
@@ -119,7 +106,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
       let quantity = qty * lotSize;
 
       // return res.json({ api_key, access_token, qty, lotSize, quantity });
-      const oldQuantity = await getQuantity(
+      const oldQuantity = await apiCenter.getQuantity(
         tradingsymbol,
         api_key,
         access_token
@@ -131,16 +118,8 @@ exports.placeLimtOrderForAll = async (req, res) => {
         });
         return;
       }
-      // console.log(oldQuantity, user.name, "****************************");
-      // return res.status(200).json(oldQuantity);
 
-      if (!access_token) {
-        responses.push({
-          userId: user._id,
-          error: "No access token found",
-        });
-        return;
-      }
+      // return res.status(200).json(oldQuantity);
 
       const orderId = await orderFunctions.limitOrder(
         tradingsymbol,
@@ -186,9 +165,9 @@ exports.placeLimtOrderForAll = async (req, res) => {
         });
         await newLog.save();
 
-        if (orderStatus === "COMPLETE") {
+        if (orderStatus === "COMPLETE" && exchange !== "NSE") {
           if (transaction_type === "BUY" && oldQuantity < 0) {
-            console.log("this should not run ******************");
+            // console.log("this should not run ******************");
             let quantity = Math.abs(oldQuantity);
             const squareOffOrderId = await orderFunctions.limitOrder(
               tradingsymbol,
@@ -228,7 +207,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
               squareOffPromises.push(squareOffOrderStatus);
             }
           } else if (transaction_type === "SELL" && oldQuantity > 0) {
-            console.log("this should not run ******************");
+            // console.log("this should not run ******************");
             let quantity = Math.abs(oldQuantity);
             const squareOffOrderId = await orderFunctions.limitOrder(
               tradingsymbol,
@@ -280,6 +259,245 @@ exports.placeLimtOrderForAll = async (req, res) => {
 
     await Promise.allSettled(promises);
     await Promise.allSettled(squareOffPromises);
+    // console.log(promises);
+    res.status(200).json({ responses });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.toString() });
+  }
+};
+
+exports.giveQuantityDiff = async (req, res) => {
+  // return res.send("hit");
+  try {
+    const { transaction_type, stockId } = req.body;
+    const stock = await Stock.findById(stockId);
+    const tradingsymbol = stock.brokerDetail.tradingSymbol;
+
+    const allUsers = await User.find({
+      stockDetail: {
+        $elemMatch: {
+          stockId: stockId,
+          isActive: true,
+        },
+      },
+    }).lean();
+
+    const users = allUsers.map((user) => {
+      const specificStock = user.stockDetail.find((stock) => {
+        return stock.stockId.toString() === stockId;
+      });
+      return { ...user, stockDetail: specificStock };
+    });
+
+    // return res.send(users);
+
+    let responses = [];
+    let promises = [];
+
+    promises = users.map(async (user) => {
+      // return res.send(user);
+      const api_key = user.brokerDetail.apiKey;
+      const access_token = user.brokerDetail.dailyAccessToken;
+      const qty = user.stockDetail.quantity;
+      const lotSize = stock.brokerDetail.lotSize;
+      let quantity = qty * lotSize;
+      let desiredQuantity;
+      if (transaction_type === "BUY") {
+        desiredQuantity = quantity;
+      } else if (transaction_type === "SELL") {
+        desiredQuantity = quantity * -1;
+      }
+
+      // return res.json({ api_key, access_token, qty, lotSize, quantity });
+      const actualQuantity = await apiCenter.getQuantity(
+        tradingsymbol,
+        api_key,
+        access_token
+      );
+      if (actualQuantity?.error) {
+        responses.push({
+          userId: user._id,
+          error: actualQuantity.error,
+        });
+        return;
+      }
+      responses.push({
+        userId: user._id,
+        desiredQuantity,
+        actualQuantity,
+      });
+    });
+
+    await Promise.allSettled(promises);
+    // console.log(promises);
+    res.status(200).json({ responses });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.toString() });
+  }
+};
+
+exports.neutralisePositions = async (req, res) => {
+  // return res.send("hit");
+  try {
+    const { stockId, price } = req.body;
+    const stock = await Stock.findById(stockId);
+    const exchange = stock.brokerDetail.exchange;
+    const tradingsymbol = stock.brokerDetail.tradingSymbol;
+
+    const allUsers = await User.find({
+      stockDetail: {
+        $elemMatch: {
+          stockId: stockId,
+          isActive: true,
+        },
+      },
+    }).lean();
+
+    const users = allUsers.map((user) => {
+      const specificStock = user.stockDetail.find((stock) => {
+        return stock.stockId.toString() === stockId;
+      });
+      return { ...user, stockDetail: specificStock };
+    });
+
+    // return res.send(users);
+
+    let responses = [];
+    let promises = [];
+
+    promises = users.map(async (user) => {
+      // return res.send(user);
+      const api_key = user.brokerDetail.apiKey;
+      const access_token = user.brokerDetail.dailyAccessToken;
+
+      // return res.json({ api_key, access_token, qty, lotSize, quantity });
+      const oldQuantity = await apiCenter.getQuantity(
+        tradingsymbol,
+        api_key,
+        access_token
+      );
+      if (oldQuantity?.error) {
+        responses.push({
+          userId: user._id,
+          error: oldQuantity.error,
+        });
+        return;
+      }
+
+      // return res.status(200).json(oldQuantity);
+
+      if (oldQuantity > 0) {
+        let transaction_type = "SELL";
+        let quantity = Math.abs(oldQuantity);
+        const orderId = await orderFunctions.limitOrder(
+          tradingsymbol,
+          transaction_type,
+          exchange,
+          quantity,
+          price,
+          api_key,
+          access_token
+        );
+
+        if (orderId?.error) {
+          responses.push({
+            userId: user._id,
+            error: "Order Id not generated. Error in data.",
+          });
+          return;
+        }
+        if (!orderId) {
+          responses.push({
+            userId: user._id,
+            error: "Order Id not generated. Error in data.",
+          });
+          return;
+        } else {
+          console.log("orderId is - " + orderId + " - for user - " + user.name);
+          const orderStatus = await apiCenter.orderCheckingHandler(
+            orderId,
+            api_key,
+            access_token
+          );
+          console.log(orderStatus);
+          const time = new Date();
+          const newLog = new Log({
+            orderId,
+            orderStatus,
+            tradingsymbol,
+            time,
+            price,
+            transaction_type,
+            userId: user._id,
+            quantity,
+          });
+          await newLog.save();
+        }
+        responses.push({
+          userId: user._id,
+          orderId,
+          orderStatus,
+        });
+        return orderStatus;
+      } else if (oldQuantity < 0) {
+        let transaction_type = "BUY";
+        let quantity = Math.abs(oldQuantity);
+        const orderId = await orderFunctions.limitOrder(
+          tradingsymbol,
+          transaction_type,
+          exchange,
+          quantity,
+          price,
+          api_key,
+          access_token
+        );
+
+        if (orderId?.error) {
+          responses.push({
+            userId: user._id,
+            error: "Order Id not generated. Error in data.",
+          });
+          return;
+        }
+        if (!orderId) {
+          responses.push({
+            userId: user._id,
+            error: "Order Id not generated. Error in data.",
+          });
+          return;
+        } else {
+          console.log("orderId is - " + orderId + " - for user - " + user.name);
+          const orderStatus = await apiCenter.orderCheckingHandler(
+            orderId,
+            api_key,
+            access_token
+          );
+          console.log(orderStatus);
+          const time = new Date();
+          const newLog = new Log({
+            orderId,
+            orderStatus,
+            tradingsymbol,
+            time,
+            price,
+            transaction_type,
+            userId: user._id,
+            quantity,
+          });
+          await newLog.save();
+        }
+        responses.push({
+          userId: user._id,
+          orderId,
+          orderStatus,
+        });
+        return orderStatus;
+      }
+    });
+
+    await Promise.allSettled(promises);
     // console.log(promises);
     res.status(200).json({ responses });
   } catch (error) {
@@ -432,7 +650,7 @@ exports.getPositionsAPI = async (req, res) => {
   }
 };
 
-exports.getLatestClose = async (req, res) => {
+exports.getLatestCloseAPI = async (req, res) => {
   try {
     const inst_token = req.query.inst_token;
     if (!inst_token) {
@@ -449,7 +667,7 @@ exports.getLatestClose = async (req, res) => {
   }
 };
 
-exports.getInstruments = async (req, res) => {
+exports.getInstrumentsAPI = async (req, res) => {
   try {
     const instruments = await apiCenter.getInstruments();
     res.status(200).json(instruments);

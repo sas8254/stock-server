@@ -88,12 +88,13 @@ const orderHistoryThroughApi = async (api_key, access_token, id) => {
 };
 
 const orderCheckingHandler = (order_id, api_key, access_token) => {
+  let orderStatus;
   return new Promise((resolve, reject) => {
     const orderChecking = setInterval(() => {
       orderHistoryThroughApi(api_key, access_token, order_id)
         .then((res) => {
           // console.log(res);
-          const status = res?.slice(-1)[0]?.status;
+          let status = res?.slice(-1)[0]?.status;
           console.log(status);
           if (
             status === "COMPLETE" ||
@@ -102,19 +103,25 @@ const orderCheckingHandler = (order_id, api_key, access_token) => {
           ) {
             resolve(status);
             clearInterval(orderChecking);
+          } else {
+            orderStatus = status;
           }
         })
-        .catch((err) => {});
+        .catch((err) => {
+          console.log(err);
+        });
 
       console.log("checking");
     }, 5000);
 
     setTimeout(() => {
       clearInterval(orderChecking);
-      resolve("UNRESOLVED");
+      resolve(orderStatus);
     }, 65000);
   });
 };
+
+// make get orderstatus api
 
 const getPositions = async (api_key, access_token) => {
   const newInstance = kiteInstance();
@@ -165,6 +172,19 @@ const getInstruments = async () => {
   }
 };
 
+const getQuantity = async (tradingsymbol, api_key, access_token) => {
+  const positions = await getPositions(api_key, access_token);
+  if (positions?.error) {
+    return positions;
+  }
+  for (let i = 0; i < positions.net.length; i++) {
+    if (positions.net[i].tradingsymbol === tradingsymbol) {
+      return positions.net[i].quantity;
+    }
+  }
+  return 0;
+};
+
 module.exports = {
   getCandleData,
   getMinutesMain,
@@ -174,4 +194,5 @@ module.exports = {
   orderCheckingHandler,
   getPositions,
   getInstruments,
+  getQuantity,
 };
