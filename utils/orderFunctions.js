@@ -64,13 +64,10 @@ exports.limitOrder = async (
 exports.updateOrder = async (api_key, access_token, price, orderId) => {
   try {
     const newInstance = instance();
-    const response = await newInstance.PUT(
+    const response = await newInstance.put(
       `/orders/regular/${orderId}`,
       {
         price,
-        // order_type: "LIMIT",
-        // validity: "TTL",
-        // validity_ttl: 1,
       },
       {
         headers: {
@@ -92,7 +89,7 @@ exports.updateOrder = async (api_key, access_token, price, orderId) => {
   }
 };
 
-exports.deleteOrder = async (orderId, api_key, access_token) => {
+exports.deleteOrder = async (api_key, access_token, orderId) => {
   try {
     const newInstance = instance();
     const response = await newInstance.delete(`/orders/regular/${orderId}`, {

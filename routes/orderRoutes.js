@@ -51,7 +51,7 @@ router.post(
 );
 
 router.post(
-  "/give-quantity-differencce",
+  "/give-quantity-difference",
   authMiddleware.isAdmin,
   orderController.giveQuantityDiff
 );

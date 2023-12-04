@@ -208,6 +208,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
                 userId: user._id,
                 squareOffOrderId,
                 squareOffOrderStatus,
+                quantity,
               });
               squareOffPromises.push(squareOffOrderStatus);
             }
@@ -253,6 +254,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
                 userId: user._id,
                 squareOffOrderId,
                 squareOffOrderStatus,
+                quantity,
               });
               squareOffPromises.push(squareOffOrderStatus);
             }
@@ -262,6 +264,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
           userId: user._id,
           orderId,
           orderStatus,
+          quantity,
         });
         return orderStatus;
       }
@@ -444,13 +447,14 @@ exports.neutralisePositions = async (req, res) => {
             quantity,
           });
           await newLog.save();
+          responses.push({
+            userId: user._id,
+            orderId,
+            orderStatus,
+            quantity,
+          });
+          return orderStatus;
         }
-        responses.push({
-          userId: user._id,
-          orderId,
-          orderStatus,
-        });
-        return orderStatus;
       } else if (oldQuantity < 0) {
         let transaction_type = "BUY";
         let quantity = Math.abs(oldQuantity);
@@ -497,13 +501,14 @@ exports.neutralisePositions = async (req, res) => {
             quantity,
           });
           await newLog.save();
+          responses.push({
+            userId: user._id,
+            orderId,
+            orderStatus,
+            quantity,
+          });
+          return orderStatus;
         }
-        responses.push({
-          userId: user._id,
-          orderId,
-          orderStatus,
-        });
-        return orderStatus;
       }
     });
 
@@ -518,15 +523,11 @@ exports.neutralisePositions = async (req, res) => {
 
 exports.updateOrderAPI = async (req, res) => {
   try {
-    let user;
-    if (req.user.role === "admin") {
-      user = await User.findById(req.params.id);
-    } else {
-      user = await User.findById(req.user.id);
-    }
+    const { orderId, userId, price } = req.body;
+    const user = await User.findById(userId);
     const api_key = user.brokerDetail.apiKey;
     const access_token = user.brokerDetail.dailyAccessToken;
-    const { price, orderId } = req.body;
+
     if (!api_key || !access_token || !price || !orderId) {
       return res.status(500).json({
         message: "api_key or price or accessToken or orderId is missing.",
@@ -557,15 +558,11 @@ exports.updateOrderAPI = async (req, res) => {
 
 exports.deleteOrderAPI = async (req, res) => {
   try {
-    let user;
-    if (req.user.role === "admin") {
-      user = await User.findById(req.params.id);
-    } else {
-      user = await User.findById(req.user.id);
-    }
+    const { orderId, userId } = req.body;
+    const user = await User.findById(userId);
     const api_key = user.brokerDetail.apiKey;
     const access_token = user.brokerDetail.dailyAccessToken;
-    const { orderId } = req.body;
+
     if (!api_key || !access_token || !orderId) {
       return res.status(500).json({
         message: "api_key or accessToken or orderId is missing.",
