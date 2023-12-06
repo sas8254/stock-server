@@ -121,7 +121,6 @@ const orderCheckingHandler = (order_id, api_key, access_token) => {
   });
 };
 
-// make get orderstatus api
 
 const getPositions = async (api_key, access_token) => {
   const newInstance = kiteInstance();
@@ -135,11 +134,10 @@ const getPositions = async (api_key, access_token) => {
       },
     });
     if (response) {
-      // console.log(response?.data?.data?.net[0]?.quantity);
       return response.data.data;
     }
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return { error: "An error occurred while getting positions" };
   }
 };

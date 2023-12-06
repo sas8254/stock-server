@@ -51,7 +51,7 @@ app.use("/checks", checkRoutes);
 reqMaker.sendRequest();
 setInterval(reqMaker.sendRequest, 600000);
 
-const PORT = process.env.PORT || 3100
+const PORT = process.env.PORT || 3100;
 app.listen(PORT, () => {
    console.log(
      `Server running on port ${PORT} new line ***********************************************************************************************************************************************************************`

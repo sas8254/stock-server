@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
+const apiCenter = require("../utils/apiCenter");
 
 exports.addUser = async (req, res) => {
   try {
@@ -96,7 +97,6 @@ exports.editUser = async (req, res) => {
   // return res.send(req.body);
 
   try {
-  
     const updateFields = { ...req.body };
     if (req.body.brokerDetail) {
       for (let field in req.body.brokerDetail) {
@@ -166,5 +166,46 @@ exports.resetPassword = async (req, res) => {
       message: "An error occurred",
       error,
     });
+  }
+};
+
+exports.isAllSet = async (req, res) => {
+  // return res.send("hit");
+  try {
+    const users = await User.find({
+      isApprovedFromAdmin: true,
+    }).lean();
+
+    let responses = [];
+    let promises = [];
+
+    promises = users.map(async (user) => {
+      // return res.send(user);
+      const api_key = user.brokerDetail.apiKey;
+      const access_token = user.brokerDetail.dailyAccessToken;
+
+      const positions = await apiCenter.getPositions(api_key, access_token);
+      if (positions?.error) {
+        responses.push({
+          userId: user._id,
+          name: user.name,
+          no: user.mobileNo,
+          error: positions.error,
+        });
+        return;
+      }
+      responses.push({
+        userId: user._id,
+        name: user.name,
+        no: user.mobileNo,
+      });
+    });
+
+    await Promise.allSettled(promises);
+    // console.log(promises);
+    res.status(200).json({ responses });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.toString() });
   }
 };

@@ -18,6 +18,8 @@ router.get(
   adminController.getAllUsers
 );
 
+router.get("/is-all-set", authMiddleware.isAdmin, adminController.isAllSet);
+
 router.get("/get-user/:Id", authMiddleware.isUser, adminController.getUser);
 
 router.patch("/edit-user/:Id", authMiddleware.isUser, adminController.editUser);
