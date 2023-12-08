@@ -52,12 +52,12 @@ exports.limitOrder = async (
     });
 
     if (response) {
-      console.log(response.data + "*******************************");
+      // console.log(response.data + "*******************************");
       return response.data.data.order_id || "invalid order data";
     }
   } catch (error) {
     console.log("error in placing limit order ");
-    // console.log(error);
+    console.log(error);
     return { error: "An error occurred while placing order" };
   }
 };
@@ -131,8 +131,3 @@ exports.getOrders = async (api_key, access_token) => {
     return { error: "An error occurred while getting orders" };
   }
 };
-
-
-
-
-
