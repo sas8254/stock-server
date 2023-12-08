@@ -37,6 +37,7 @@ exports.limitOrder = async (
     } else if (exchange === "MCX") {
       dataOject["product"] = "NRML";
       dataOject["validity"] = "DAY";
+    } else {
       console.log("Exchange error, value for exchange is " + exchange);
       return "exchange error! chech exchange value";
     }

@@ -20,7 +20,7 @@ exports.placeLimtOrder = async (req, res) => {
     const api_key = user.brokerDetail.apiKey;
     const access_token = user.brokerDetail.dailyAccessToken;
 
-    // console.log(user, api_key, access_token);
+    console.log(user, api_key, access_token);
 
     if (!access_token) {
       return res.status(400).json("No access token found");
@@ -350,8 +350,6 @@ exports.giveQuantityDiff = async (req, res) => {
     res.status(500).json({ error: error.toString() });
   }
 };
-
-
 
 exports.neutralisePositions = async (req, res) => {
   // return res.send("hit");
