@@ -115,6 +115,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
       if (oldQuantity?.error) {
         responses.push({
           userId: user._id,
+          name: user.name,
           error: oldQuantity.error,
         });
         return;
@@ -135,6 +136,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
       if (orderId?.error) {
         responses.push({
           userId: user._id,
+          name: user.name,
           error: "Order Id not generated. Error in data.",
         });
         return;
@@ -142,6 +144,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
       if (!orderId) {
         responses.push({
           userId: user._id,
+          name: user.name,
           error: "Order Id not generated. Error in data.",
         });
         return;
@@ -182,6 +185,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
             if (!squareOffOrderId) {
               responses.push({
                 userId: user._id,
+                name: user.name,
                 error: "squareOffOrderId Id not generated. Error in data.",
               });
               return;
@@ -207,6 +211,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
               await newLog.save();
               responses.push({
                 userId: user._id,
+                name: user.name,
                 squareOffOrderId,
                 squareOffOrderStatus,
                 quantity,
@@ -228,6 +233,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
             if (!squareOffOrderId) {
               responses.push({
                 userId: user._id,
+                name: user.name,
                 error: "squareOffOrderId Id not generated. Error in data.",
               });
               return;
@@ -253,6 +259,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
               await newLog.save();
               responses.push({
                 userId: user._id,
+                name: user.name,
                 squareOffOrderId,
                 squareOffOrderStatus,
                 quantity,
@@ -263,6 +270,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
         }
         responses.push({
           userId: user._id,
+          name: user.name,
           orderId,
           orderStatus,
           quantity,
@@ -284,9 +292,10 @@ exports.placeLimtOrderForAll = async (req, res) => {
 exports.giveQuantityDiff = async (req, res) => {
   // return res.send("hit");
   try {
-    const { transaction_type, stockId } = req.body;
+    const { stockId } = req.body;
     const stock = await Stock.findById(stockId);
     const tradingsymbol = stock.brokerDetail.tradingSymbol;
+    const transaction_type = stock.status;
 
     const allUsers = await User.find({
       stockDetail: {
@@ -332,12 +341,14 @@ exports.giveQuantityDiff = async (req, res) => {
       if (actualQuantity?.error) {
         responses.push({
           userId: user._id,
+          name: user.name,
           error: actualQuantity.error,
         });
         return;
       }
       responses.push({
         userId: user._id,
+        name: user.name,
         desiredQuantity,
         actualQuantity,
       });
@@ -395,6 +406,7 @@ exports.neutralisePositions = async (req, res) => {
       if (oldQuantity?.error) {
         responses.push({
           userId: user._id,
+          name: user.name,
           error: oldQuantity.error,
         });
         return;
@@ -418,6 +430,7 @@ exports.neutralisePositions = async (req, res) => {
         if (orderId?.error) {
           responses.push({
             userId: user._id,
+            name: user.name,
             error: "Order Id not generated. Error in data.",
           });
           return;
@@ -425,6 +438,7 @@ exports.neutralisePositions = async (req, res) => {
         if (!orderId) {
           responses.push({
             userId: user._id,
+            name: user.name,
             error: "Order Id not generated. Error in data.",
           });
           return;
@@ -472,6 +486,7 @@ exports.neutralisePositions = async (req, res) => {
         if (orderId?.error) {
           responses.push({
             userId: user._id,
+            name: user.name,
             error: "Order Id not generated. Error in data.",
           });
           return;
@@ -479,6 +494,7 @@ exports.neutralisePositions = async (req, res) => {
         if (!orderId) {
           responses.push({
             userId: user._id,
+            name: user.name,
             error: "Order Id not generated. Error in data.",
           });
           return;

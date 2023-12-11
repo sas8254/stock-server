@@ -18,7 +18,7 @@ router.get(
   adminController.getAllUsers
 );
 
-router.get("/is-all-set", authMiddleware.isAdmin, adminController.isAllSet);
+router.get("/is-all-set", authMiddleware.isManager, adminController.isAllSet);
 
 router.get("/get-user/:Id", authMiddleware.isUser, adminController.getUser);
 
