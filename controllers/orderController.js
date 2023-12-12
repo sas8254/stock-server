@@ -82,6 +82,7 @@ exports.placeLimtOrderForAll = async (req, res) => {
           isActive: true,
         },
       },
+      isApprovedFromAdmin: true,
     }).lean();
 
     const users = allUsers.map((user) => {
@@ -199,8 +200,8 @@ exports.placeLimtOrderForAll = async (req, res) => {
               console.log(squareOffOrderStatus);
               const time = new Date();
               const newLog = new Log({
-                squareOffOrderId,
-                squareOffOrderStatus,
+                orderId: squareOffOrderId,
+                orderStatus: squareOffOrderStatus,
                 tradingsymbol,
                 time,
                 price,
@@ -247,8 +248,8 @@ exports.placeLimtOrderForAll = async (req, res) => {
               console.log(squareOffOrderStatus);
               const time = new Date();
               const newLog = new Log({
-                squareOffOrderId,
-                squareOffOrderStatus,
+                orderId: squareOffOrderId,
+                orderStatus: squareOffOrderStatus,
                 tradingsymbol,
                 time,
                 price,
@@ -304,6 +305,7 @@ exports.giveQuantityDiff = async (req, res) => {
           isActive: true,
         },
       },
+      isApprovedFromAdmin: true,
     }).lean();
 
     const users = allUsers.map((user) => {
@@ -378,6 +380,7 @@ exports.neutralisePositions = async (req, res) => {
           isActive: true,
         },
       },
+      isApprovedFromAdmin: true,
     }).lean();
 
     const users = allUsers.map((user) => {
