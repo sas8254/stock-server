@@ -95,6 +95,26 @@ module.exports.oneHourlyCrudeOilMiniDesicionMaker = async (stock) => {
    }
 }
 
+// module.exports.fourHourlyCrudeOilMiniDesicionMaker = async (stock) => {
+//    const hourlyRowCandles = await apiCenter.getCandleData(stock.brokerDetail.instrumentToken,"2hour")
+//    const minutesData = await apiCenter.getCandleData(stock.brokerDetail.instrumentToken,"minute")
+
+//    const rowCandles = [...hourlyRowCandles]
+//    if (+rowCandles.slice(-1)[0][0].split("T")[1].split(":")[0] === new Date().getHours()) {
+//       rowCandles.pop()
+//    }
+//    if ((+rowCandles.slice(-1)[0][0].split("T")[1].split(":")[0] === new Date().getHours() - 2) &&(new Date().getHours() !== 23)) {
+//       rowCandles.pop()
+//    }
+
+//    const lastTwoHourCandle = minutesTo2Hour(minutesData)
+//    lastTwoHourCandle.unshift("date")
+//    console.log(lastTwoHourCandle)
+//    const heikincandleData = heikinConverter([...twoHourToFourConverter([...rowCandles, lastTwoHourCandle])])
+//    // console.log(heikincandleData)
+//    orderDecisionMaker.crudeOilMiniOrderHandler(heikincandleData, stock)
+// }
+
 module.exports.oneHourlyNiftyFiftyDesicionMaker = async (stock) => {
    try {
       const hourlyRowCandles = await apiCenter.getHoursMain(stock.brokerDetail.instrumentToken)

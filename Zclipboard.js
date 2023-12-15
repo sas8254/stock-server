@@ -1,7 +1,6 @@
-exports.placeLimtOrderForAll = async (req, res) => {
+const placeLimtOrderForAll = async (transaction_type, stockId, price) => {
   // return res.send("hit");
   try {
-    const { transaction_type, stockId, price } = req.body;
     const stock = await Stock.findById(stockId);
     const exchange = stock.brokerDetail.exchange;
     const tradingsymbol = stock.brokerDetail.tradingSymbol;
@@ -213,9 +212,9 @@ exports.placeLimtOrderForAll = async (req, res) => {
     await Promise.allSettled(promises);
     await Promise.allSettled(squareOffPromises);
     // console.log(promises);
-    res.status(200).json({ responses });
+    return responses;
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error.toString() });
+    return { error: error.toString() };
   }
 };
