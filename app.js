@@ -39,6 +39,7 @@ app.options("*", cors());
 // cron.scheduleBankNifty()
 // cron.scheduleCrudeOilMini()
 // cron.scheduleNiftyFifty()
+//  cron.scheduleCrudeOilMiniFour();
 
 app.use("/users", userRoutes);
 app.use("/stocks", stockRoutes);
