@@ -1,220 +1,95 @@
-const placeLimtOrderForAll = async (transaction_type, stockId, price) => {
-  // return res.send("hit");
+module.exports.orderHandler = async (arry, stock) => {
   try {
-    const stock = await Stock.findById(stockId);
-    const exchange = stock.brokerDetail.exchange;
-    const tradingsymbol = stock.brokerDetail.tradingSymbol;
+    const arrivedAry = arry.length > 0 && [...arry.slice(-2)];
+    const lastTwoAry = [...arrivedAry];
+    const minutesData = await apiCenter.getMinutesMain(
+      stock.brokerDetail.instrumentToken
+    );
+    const price = parseInt(minutesData.slice(-1)[0][4]);
 
-    const allUsers = await User.find({
-      stockDetail: {
-        $elemMatch: {
-          stockId: stockId,
-          isActive: true,
-        },
-      },
-    }).lean();
+    let orderType = stock.status;
 
-    const users = allUsers.map((user) => {
-      const specificStock = user.stockDetail.find((stock) => {
-        return stock.stockId.toString() === stockId;
-      });
-      return { ...user, stockDetail: specificStock };
-    });
+    let orderplaced = false;
 
-    // return res.send(users);
+    const lastGreenCandle = arry.reverse().find((e) => e[4] === "green");
+    const lastRedCandle = arry.reverse().find((e) => e[4] === "red");
 
-    let responses = [];
-    let promises = [];
-    let squareOffPromises = [];
+    if (
+      orderType === "BUY" &&
+      lastTwoAry[1][4] === "red" &&
+      lastGreenCandle[2] > lastTwoAry[1][3]
+    ) {
+      orderplaced = true;
 
-    promises = users.map(async (user) => {
-      // return res.send(user);
-      // const user = await User.findById(user._id);
-      const api_key = user.brokerDetail.apiKey;
-      const access_token = user.brokerDetail.dailyAccessToken;
-      const qty = user.stockDetail.quantity;
-      const lotSize = stock.brokerDetail.lotSize;
-      let quantity = qty * lotSize;
+      orderType = "SELL";
 
-      // return res.json({ api_key, access_token, qty, lotSize, quantity });
-      const oldQuantity = await apiCenter.getQuantity(
-        tradingsymbol,
-        api_key,
-        access_token
+      const result = await Stock.updateOne(
+        { _id: stock._id },
+        { $set: { status: orderType } }
       );
-      if (oldQuantity?.error) {
-        responses.push({
-          userId: user._id,
-          name: user.name,
-          error: oldQuantity.error,
-        });
-        return;
-      }
-
-      // return res.status(200).json(oldQuantity);
-
-      const orderId = await orderFunctions.limitOrder(
-        tradingsymbol,
-        transaction_type,
-        exchange,
-        quantity,
-        price,
-        api_key,
-        access_token
-      );
-      // console.log(orderId + user.name);
-      if (orderId?.error) {
-        responses.push({
-          userId: user._id,
-          name: user.name,
-          error: "Order Id not generated. Error in data.",
-        });
-        return;
-      }
-      if (!orderId) {
-        responses.push({
-          userId: user._id,
-          name: user.name,
-          error: "Order Id not generated. Error in data.",
-        });
-        return;
+      if (result.nModified > 0) {
+        console.log(`Stock status updated successfully`);
       } else {
-        console.log("orderId is - " + orderId + " - for user - " + user.name);
-        const orderStatus = await apiCenter.orderCheckingHandler(
-          orderId,
-          api_key,
-          access_token
-        );
-        console.log(orderStatus);
-        const time = new Date();
-        const newLog = new Log({
-          orderId,
-          orderStatus,
-          tradingsymbol,
-          time,
-          price,
-          transaction_type,
-          userId: user._id,
-          quantity,
-        });
-        await newLog.save();
-
-        if (orderStatus === "COMPLETE" && exchange !== "NSE") {
-          if (transaction_type === "BUY" && oldQuantity < 0) {
-            // console.log("this should not run ******************");
-            let quantity = Math.abs(oldQuantity);
-            const squareOffOrderId = await orderFunctions.limitOrder(
-              tradingsymbol,
-              transaction_type,
-              exchange,
-              quantity,
-              price,
-              api_key,
-              access_token
-            );
-            if (!squareOffOrderId) {
-              responses.push({
-                userId: user._id,
-                name: user.name,
-                error: "squareOffOrderId Id not generated. Error in data.",
-              });
-              return;
-            } else {
-              console.log("squareOffOrderId is - " + squareOffOrderId);
-              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
-                squareOffOrderId,
-                api_key,
-                access_token
-              );
-              console.log(squareOffOrderStatus);
-              const time = new Date();
-              const newLog = new Log({
-                orderId: squareOffOrderId,
-                orderStatus: squareOffOrderStatus,
-                tradingsymbol,
-                time,
-                price,
-                transaction_type,
-                userId: user._id,
-                quantity,
-              });
-              await newLog.save();
-              responses.push({
-                userId: user._id,
-                name: user.name,
-                squareOffOrderId,
-                squareOffOrderStatus,
-                quantity,
-              });
-              squareOffPromises.push(squareOffOrderStatus);
-            }
-          } else if (transaction_type === "SELL" && oldQuantity > 0) {
-            // console.log("this should not run ******************");
-            let quantity = Math.abs(oldQuantity);
-            const squareOffOrderId = await orderFunctions.limitOrder(
-              tradingsymbol,
-              transaction_type,
-              exchange,
-              quantity,
-              price,
-              api_key,
-              access_token
-            );
-            if (!squareOffOrderId) {
-              responses.push({
-                userId: user._id,
-                name: user.name,
-                error: "squareOffOrderId Id not generated. Error in data.",
-              });
-              return;
-            } else {
-              console.log("squareOffOrderId is - " + squareOffOrderId);
-              const squareOffOrderStatus = await apiCenter.orderCheckingHandler(
-                squareOffOrderId,
-                api_key,
-                access_token
-              );
-              console.log(squareOffOrderStatus);
-              const time = new Date();
-              const newLog = new Log({
-                orderId: squareOffOrderId,
-                orderStatus: squareOffOrderStatus,
-                tradingsymbol,
-                time,
-                price,
-                transaction_type,
-                userId: user._id,
-                quantity,
-              });
-              await newLog.save();
-              responses.push({
-                userId: user._id,
-                name: user.name,
-                squareOffOrderId,
-                squareOffOrderStatus,
-                quantity,
-              });
-              squareOffPromises.push(squareOffOrderStatus);
-            }
-          }
-        }
-        responses.push({
-          userId: user._id,
-          name: user.name,
-          orderId,
-          orderStatus,
-          quantity,
-        });
-        return orderStatus;
+        console.log(`Stock not found or status is already set to ${orderType}`);
       }
-    });
+      let finalPrice = price - parseInt(stock.marginPoint);
 
-    await Promise.allSettled(promises);
-    await Promise.allSettled(squareOffPromises);
-    // console.log(promises);
-    return responses;
+      const response = await orderFunctions.limtOrderForAll(
+        orderType,
+        stock._id.toString(),
+        finalPrice
+      );
+
+      console.log("sell order placed", response);
+      mailer.sendMailToJadeja(
+        `Alert: SELL order of ${stock.brokerDetail.tradingSymbol} placed at ${price}, 
+        last heikin data is open : ${lastTwoAry[1][0]},high : ${lastTwoAry[1][1]},
+        low : ${lastTwoAry[1][2]},close : ${lastTwoAry[1][3]}, flag:${lastTwoAry[1][4]} ${response}`
+      );
+    } else if (
+      orderType === "SELL" &&
+      lastTwoAry[1][4] === "green" &&
+      lastRedCandle[1] < lastTwoAry[1][3]
+    ) {
+      console.log("buy order placed");
+      orderplaced = true;
+      orderType = "BUY";
+
+      const result = await Stock.updateOne(
+        { _id: stock._id },
+        { $set: { status: orderType } }
+      );
+      if (result.nModified > 0) {
+        console.log(`Stock status updated successfully`);
+      } else {
+        console.log(`Stock not found or status is already set to ${orderType}`);
+      }
+
+      let finalPrice = price + parseInt(stock.marginPoint);
+      const response = await orderFunctions.limtOrderForAll(
+        orderType,
+        stock._id.toString(),
+        finalPrice
+      );
+      console.log("sell order placed", response);
+
+      mailer.sendMailToJadeja(
+        `Alert: BUY order of ${stock.brokerDetail.tradingSymbol} placed at ${price},
+        last heikin data is open : ${lastTwoAry[1][0]},high : ${lastTwoAry[1][1]},
+        low : ${lastTwoAry[1][2]},close : ${lastTwoAry[1][3]}, flag:${lastTwoAry[1][4]} ${response}`
+      );
+    }
+
+    if (!orderplaced) {
+      console.log("order not placed");
+      mailer.sendMail(
+        `last heikin data of ${stock.brokerDetail.tradingSymbol} is open : ${lastTwoAry[1][0]},
+        high : ${lastTwoAry[1][1]},low : ${lastTwoAry[1][2]},
+        close : ${lastTwoAry[1][3]}, flag:${lastTwoAry[1][4]}`
+      );
+    }
   } catch (error) {
     console.log(error);
-    return { error: error.toString() };
+    console.log("error tripped");
   }
 };

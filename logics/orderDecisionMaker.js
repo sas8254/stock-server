@@ -41,7 +41,7 @@ module.exports.orderHandler = async (arry, stock) => {
 
       const response = await orderFunctions.limtOrderForAll(
         orderType,
-        stock._id,
+        stock._id.toString(),
         finalPrice
       );
 
@@ -73,7 +73,7 @@ module.exports.orderHandler = async (arry, stock) => {
       let finalPrice = price + parseInt(stock.marginPoint);
       const response = await orderFunctions.limtOrderForAll(
         orderType,
-        stock._id,
+        stock._id.toString(),
         finalPrice
       );
       console.log("sell order placed", response);
@@ -98,3 +98,4 @@ module.exports.orderHandler = async (arry, stock) => {
     console.log("error tripped");
   }
 };
+
