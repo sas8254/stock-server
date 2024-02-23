@@ -10,7 +10,6 @@ const logRoutes = require("./routes/logRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const checkRoutes = require("./routes/checkRoutes");
 const bodyParser = require("body-parser");
-const path = require("path");
 const { healthChecker } = require("./controllers/checkController");
 const cron = require("./utils/cron");
 const reqMaker = require("./utils/reqMaker");
